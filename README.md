@@ -1,1 +1,7 @@
-This is a starter template for [Learn Next.js](https://nextjs.org/learn).
+personal site
+=========
+- react + next.js 13 (app router)
+- tailwind
+- typescript
+
+wip

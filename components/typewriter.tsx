@@ -94,19 +94,19 @@ export default function Home() {
   return (
     <>
     {/* REMOVE .JOIN */}
-          <h3>
-            <span id="typewriter" className="bg-black after:content-['│'] after:animate-blink animate-flicker">HELLO. I AM A COMPUTER SCIENCE STUDENT AT THE UNIVERSITY OF WATERLOO. I MAKE <Link className="invisible" href={`/txt/`}>projects</Link> WHEN I CAN. 
-            I ALSO LIKE OTHER THINGS. <Link href={`/txt/`}>music</Link> IS A HOBBY, AND SO IS <Link href={`/txt/`}>photography</Link>. I FROLICK IN FIELDS TOO. YOU CAN READ MY <Link href={`/txt/`}>thoughts</Link> ON THE STUFF MENTIONED ABOVE.
+          <p className={style.text}>
+            <span id="typewriter" className="bg-black after:content-['│'] after:animate-blink animate-flicker">HELLO. I AM A COMPUTER SCIENCE STUDENT AT THE UNIVERSITY OF WATERLOO. I MAKE <Link className={["invisible", style.link].join(" ")} href={`/txt/`}>projects</Link> WHEN I CAN. 
+            I ALSO LIKE OTHER THINGS. <Link className={["invisible", style.link].join(" ")} href={`/txt/`}>music</Link> IS A HOBBY, AND SO IS <Link className={["invisible", style.link].join(" ")} href={`/txt/`}>photography</Link>. I FROLICK IN FIELDS TOO. YOU CAN READ MY <Link className={["invisible", style.link].join(" ")} href={`/txt/`}>thoughts</Link> ON THE STUFF MENTIONED ABOVE.
             you live as you dream you live as you dream you live as you dream you live as you dream  you live as you dream
             </span>
-          </h3>
+          </p>
           
             {/* links */}
-            <h3 className="absolute top-6 pr-8"><span className="invisible">HELLO. I AM A COMPUTER SCIENCE STUDENT AT THE UNIVERSITY OF WATERLOO. I MAKE </span><Link className={[style.link, style.brackets, "animate-glow"].join(" ")} href={`/txt/`}><span>projects</span></Link><span className="invisible"> WHEN I CAN. 
-            I ALSO LIKE OTHER THINGS. </span><Link className="animate-glow" href={`/txt/`}>music</Link><span className="invisible"> IS A HOBBY, AND SO IS </span><Link className="animate-glow" href={`/txt/`}>photography</Link><span className="invisible">. I FROLICK IN FIELDS TOO. YOU CAN READ MY </span><Link className="animate-glow" href={`/txt/`}>thoughts</Link><span className="invisible"> ON THE STUFF MENTIONED ABOVE.
+            <p className={[style.text,"absolute", "top-6", "pr-8"].join(" ")}><span className="invisible">HELLO. I AM A COMPUTER SCIENCE STUDENT AT THE UNIVERSITY OF WATERLOO. I MAKE </span><Link className={[style.link, style.brackets, "animate-glow"].join(" ")} href={`/txt/`}><span>projects</span></Link><span className="invisible"> WHEN I CAN. 
+            I ALSO LIKE OTHER THINGS. </span><Link className={[style.link, style.brackets, "animate-glow"].join(" ")} href={`/txt/`}>music</Link><span className="invisible"> IS A HOBBY, AND SO IS </span><Link className={[style.link, style.brackets, "animate-glow"].join(" ")} href={`/txt/`}>photography</Link><span className="invisible">. I FROLICK IN FIELDS TOO. YOU CAN READ MY </span><Link className={[style.link, style.brackets, "animate-glow"].join(" ")} href={`/txt/`}>thoughts</Link><span className="invisible"> ON THE STUFF MENTIONED ABOVE.
             you live as you dream you live as you dream you live as you dream you live as you dream  you live as you dream
             </span>
-            </h3>
+            </p>
             </>
   );
 }

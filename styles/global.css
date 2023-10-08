@@ -1,21 +1,13 @@
 @tailwind base;
 
 @layer base {
-  html {
-    /* rem-ize */
-    /* make sure the links dont crash each other */
-    letter-spacing: 8px;
-    line-height: 1.6;
-    font-size: 18px;
+  html, body {
     image-rendering: pixelated;
     font-smooth: never;
     -webkit-font-smoothing: none;
     color:#c1b492;	
-  }
-
-  body {
     background-image:url("../public/bg-test2.gif");
-    height: 100vh;
+    height: 100%;
   }
 
   h1 {
@@ -27,48 +19,19 @@
 
   a:link {
     color:#d2738a;
-    font-size: 70px;
-    line-height: 1px;
   }
     
   a:visited, a:active {
-    color:#d2738a;
+    color: black;
   }
     
   a:hover {
     color:#c1b492;
   }
-  
-  h1 {
-    font-size: 40px;
-    font-weight:normal;
-    clear:both;
-  }
-  
-  h2 {
-    font-size: 28px;
-  }
-  
-  h3 {
-    font-size: 40px;
-  }
 
-  h5 {
-    font-weight:normal;
-  }
-  
-  h6 {
-    font-size:9px;
-  }
-  
   hr {
     border-color:#d2738a;
     border-bottom-width:2px;
-  }
-  
-  b {
-    color:#d2738a;
-    font-weight:normal;
   }
 }
 

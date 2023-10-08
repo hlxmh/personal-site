@@ -3,7 +3,17 @@
 
 .link {
     position: relative;
+    font-size: calc(90rem / 16);
+    line-height: 1px;
+    letter-spacing: calc(16rem / 16);
 }
+
+.text {
+    font-size: calc(35rem / 16);
+    letter-spacing: calc(10rem / 16);
+    line-height: 2.5;
+}
+
 .link:hover span {
     animation: glitchText 0.4s linear;
 }
