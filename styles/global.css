@@ -1,37 +1,77 @@
-html,
-body {
-  padding: 0;
-  margin: 0;
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    Segoe UI,
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    Fira Sans,
-    Droid Sans,
-    Helvetica Neue,
-    sans-serif;
-  line-height: 1.6;
-  font-size: 18px;
+@tailwind base;
+
+@layer base {
+  html {
+    /* rem-ize */
+    /* make sure the links dont crash each other */
+    letter-spacing: 8px;
+    line-height: 1.6;
+    font-size: 18px;
+    image-rendering: pixelated;
+    font-smooth: never;
+    -webkit-font-smoothing: none;
+    color:#c1b492;	
+  }
+
+  body {
+    background-image:url("../public/bg-test2.gif");
+    height: 100vh;
+  }
+
+  h1 {
+    /* @apply text-2xl; */
+  }
+  h2 {
+    /* @apply text-xl; */
+  }
+
+  a:link {
+    color:#d2738a;
+    font-size: 70px;
+    line-height: 1px;
+  }
+    
+  a:visited, a:active {
+    color:#d2738a;
+  }
+    
+  a:hover {
+    color:#c1b492;
+  }
+  
+  h1 {
+    font-size: 40px;
+    font-weight:normal;
+    clear:both;
+  }
+  
+  h2 {
+    font-size: 28px;
+  }
+  
+  h3 {
+    font-size: 40px;
+  }
+
+  h5 {
+    font-weight:normal;
+  }
+  
+  h6 {
+    font-size:9px;
+  }
+  
+  hr {
+    border-color:#d2738a;
+    border-bottom-width:2px;
+  }
+  
+  b {
+    color:#d2738a;
+    font-weight:normal;
+  }
 }
 
-* {
-  box-sizing: border-box;
-}
+@tailwind components;
+@tailwind utilities;
 
-a {
-  color: #0070f3;
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-img {
-  max-width: 100%;
-  display: block;
-}
