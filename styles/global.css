@@ -11,10 +11,10 @@
   }
 
   h1 {
-    /* @apply text-2xl; */
+    @apply text-2xl;
   }
   h2 {
-    /* @apply text-xl; */
+    @apply text-xl;
   }
 
   a:link {
