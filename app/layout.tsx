@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 //   <meta name="twitter:card" content="summary_large_image" />
 }
 
-export default function Layout({
+export default function App({
   children,
 }: {
   children: React.ReactNode;

@@ -14,7 +14,15 @@
     @apply text-2xl;
   }
   h2 {
-    @apply text-xl;
+    @apply tracking-[0.5em];
+  }
+
+  p, h2 {
+    @apply mb-4;
+  }
+
+  h3 {
+    @apply text-sm tracking-[0.4em];
   }
 
   a:link {
