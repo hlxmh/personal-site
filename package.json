@@ -7,6 +7,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-three/fiber": "^8.14.5",
+    "@types/three": "^0.157.0",
     "date-fns": "^2.29.3",
     "gray-matter": "^4.0.3",
     "next": "^13.0.2",
@@ -14,11 +16,13 @@
     "react-dom": "18.2.0",
     "react-youtube": "^10.1.0",
     "remark": "^14.0.2",
-    "remark-html": "^15.0.1"
+    "remark-html": "^15.0.1",
+    "three": "^0.157.0"
   },
   "devDependencies": {
     "@types/node": "^18.11.9",
     "@types/react": "^18.0.25",
+    "@types/youtube-player": "^5.5.8",
     "autoprefixer": "^10.4.16",
     "eslint-config-next": "^13.5.3",
     "postcss": "^8.4.30",

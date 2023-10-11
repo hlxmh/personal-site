@@ -14,19 +14,19 @@ export default function Header() {
     <header className={styles.header}>
         <ul>
             <li>
-                <Link href="/">index</Link>
+                <Link href="/">_index</Link>
             </li>
             <li>
-                <Link href="/">projects</Link>
+                <Link href="/">_projects</Link>
             </li>
             <li>
-                <Link href="/">music</Link>
+                <Link href="/">_music</Link>
             </li>
             <li>
-                <Link href="/">photography</Link>
+                <Link href="/">_photography</Link>
             </li>
             <li>
-                <Link href="/">thoughts</Link>
+                <Link href="/">_thoughts</Link>
             </li>
         </ul>
     </header>
