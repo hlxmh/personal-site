@@ -103,7 +103,7 @@ export default function Home() {
           
             {/* links */}
             <p className={[style.text,"absolute", "top-3", "px-8", "left-0", "w-[95vw]"].join(" ")}><span className="invisible">HELLO. I AM A COMPUTER SCIENCE STUDENT AT THE UNIVERSITY OF WATERLOO. I MAKE </span><Link className={[style.link, style.brackets, "animate-glow"].join(" ")} href={`/txt/`}><span>projects</span></Link><span className="invisible"> WHEN I CAN. 
-            I ALSO LIKE OTHER THINGS. </span><Link className={[style.link, style.brackets, "animate-glow"].join(" ")} href={`/txt/`}>music</Link><span className="invisible"> IS A HOBBY, AND SO IS </span><Link className={[style.link, style.brackets, "animate-glow"].join(" ")} href={`/txt/`}>photography</Link><span className="invisible">. I FROLICK IN FIELDS TOO. YOU CAN READ MY </span><Link className={[style.link, style.brackets, "animate-glow"].join(" ")} href={`/txt/`}>thoughts</Link><span className="invisible"> ON THE STUFF MENTIONED ABOVE.
+            I ALSO LIKE OTHER THINGS. </span><Link className={[style.link, style.brackets, "animate-glow"].join(" ")} href={`/sound/`}>music</Link><span className="invisible"> IS A HOBBY, AND SO IS </span><Link className={[style.link, style.brackets, "animate-glow"].join(" ")} href={`/txt/`}>photography</Link><span className="invisible">. I FROLICK IN FIELDS TOO. YOU CAN READ MY </span><Link className={[style.link, style.brackets, "animate-glow"].join(" ")} href={`/txt/`}>thoughts</Link><span className="invisible"> ON THE STUFF MENTIONED ABOVE.
             you live as you dream you live as you dream you live as you dream you live as you dream  you live as you dream
             </span>
             </p>
