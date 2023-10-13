@@ -7,8 +7,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-bitter)'],
-        mono: ['var(--font-roboto-mono)'],
+        sans: ['var(--font-cascadia-mono)', 'var(--font-victor-mono)', 'var(--font-roboto-mono)', 'monospace']
       },
       animation: {
         blink: 'blink 1s linear infinite',

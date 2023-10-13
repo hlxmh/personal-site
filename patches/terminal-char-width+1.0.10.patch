@@ -1,0 +1,16 @@
+diff --git a/node_modules/terminal-char-width/lib/index.js b/node_modules/terminal-char-width/lib/index.js
+index 8cd4d9f..d38c5a2 100755
+--- a/node_modules/terminal-char-width/lib/index.js
++++ b/node_modules/terminal-char-width/lib/index.js
+@@ -1,8 +1,6 @@
+ "use strict";
+ 
+-var isWindows = require("is-windows");
+-
+ // TODO This probably needs to be improved by checking the
+ // terminal type and fonts. But it's good enough for an
+ // initial version. :D
+-module.exports = isWindows() ? 0.714 : 0.5;
+\ No newline at end of file
++module.exports = process.platform === 'win32' ? 0.714 : 0.5;
+\ No newline at end of file

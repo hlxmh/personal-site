@@ -1,16 +1,12 @@
 import '../styles/global.css';
 import { Metadata } from 'next'
 import ThemeProvider from './theme-provider'
+import localFont from 'next/font/local'
+
+const cascadia_mono = localFont({ src: '../public/CascadiaMono.woff2', variable: '--font-cascadia-mono' })
 
 
-import { Bitter, Roboto_Mono, Victor_Mono } from 'next/font/google' 
-
-// If loading a variable font, you don't need to specify the font weight
-const bitter = Bitter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-bitter',
-})
+import { Roboto_Mono, Victor_Mono } from 'next/font/google' 
 
 const roboto_mono = Roboto_Mono({
     subsets: ['latin'],
@@ -43,7 +39,7 @@ export default function App({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${victor_mono.variable} font-sans`}>
+    <html lang="en" className={`${victor_mono.variable} ${roboto_mono.variable} ${cascadia_mono.variable}`}>
         <body><ThemeProvider>{children}</ThemeProvider></body>
     </html>
   );
