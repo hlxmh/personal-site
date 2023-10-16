@@ -1,3 +1,6 @@
 {
-    "vscord.enabled": false
+  "vscord.enabled": false,
+  "tailwindCSS.experimental.classRegex": [
+    ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ]
 }

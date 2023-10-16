@@ -1,12 +1,13 @@
 @tailwind base;
 
 @layer base {
-  html, body {
+  html,
+  body {
     image-rendering: pixelated;
     font-smooth: never;
     -webkit-font-smoothing: none;
-    color:#c1b492;	
-    background-image:url("../public/bg-test2.gif");
+    color: #c1b492;
+    background-image: url("../public/bg-test2.gif");
     height: 100%;
   }
 
@@ -17,7 +18,8 @@
     @apply tracking-[0.5em];
   }
 
-  p, h2 {
+  p,
+  h2 {
     @apply mb-4;
   }
 
@@ -26,23 +28,23 @@
   }
 
   a:link {
-    color:#d2738a;
+    color: #d2738a;
   }
-    
-  a:visited, a:active {
+
+  a:visited,
+  a:active {
     color: black;
   }
-    
+
   a:hover {
-    color:#c1b492;
+    color: #c1b492;
   }
 
   hr {
-    border-color:#d2738a;
-    border-bottom-width:2px;
+    border-color: #d2738a;
+    border-bottom-width: 2px;
   }
 }
 
 @tailwind components;
 @tailwind utilities;
-

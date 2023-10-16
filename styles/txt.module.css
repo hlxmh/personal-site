@@ -1,38 +1,38 @@
 .menu__item:hover .menu__item_name {
-	color: #ffffff;
-	background: #e57fe542;
+  color: #ffffff;
+  background: #e57fe542;
 }
 
 .menu__item::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	right: 100%;
-	width: 0.9em;
-	height: 1em;
-	opacity: 0;
-	background: rgba(201, 90, 211, 0.482);
-	margin-right: 0.25em;
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 100%;
+  width: 0.9em;
+  height: 1em;
+  opacity: 0;
+  background: rgba(201, 90, 211, 0.482);
+  margin-right: 0.25em;
 }
 
 .menu__item:hover::before {
-	animation: blinkblink 0.4s cubic-bezier(0.5,0,1,1) infinite alternate;
+  animation: blinkblink 0.4s cubic-bezier(0.5, 0, 1, 1) infinite alternate;
 }
 
 @keyframes blinkblink {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .menu__item {
-	position: relative;
-	display: block;
+  position: relative;
+  display: block;
 }
 
 .menu__item_name {
-	display: inline-block;
+  display: inline-block;
 }
