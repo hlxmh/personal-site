@@ -8,7 +8,7 @@ const cascadia_mono = localFont({
   variable: "--font-cascadia-mono",
 });
 
-import { Roboto_Mono, Victor_Mono } from "next/font/google";
+import { Roboto_Mono, Victor_Mono, Space_Mono } from "next/font/google";
 
 const roboto_mono = Roboto_Mono({
   subsets: ["latin"],
@@ -20,6 +20,13 @@ const victor_mono = Victor_Mono({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-victor-mono",
+});
+
+const space_mono = Space_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-space-mono",
+  weight: '400',
 });
 
 export const metadata: Metadata = {
@@ -40,7 +47,7 @@ export default function App({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${victor_mono.variable} ${roboto_mono.variable} ${cascadia_mono.variable}`}
+      className={`${victor_mono.variable} ${roboto_mono.variable} ${cascadia_mono.variable} ${space_mono.variable}`}
     >
       <body>
         <ThemeProvider>{children}</ThemeProvider>

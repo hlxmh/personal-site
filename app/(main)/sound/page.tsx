@@ -1,18 +1,8 @@
-// 'use client'
-
-// import YouTube, { YouTubePlayer, YouTubeProps } from 'react-youtube';
-import Link from "next/link";
-import style from "styles/app.module.css";
 import React from "react";
-import PlayerStates from "youtube-player/dist/constants/PlayerStates";
-import Image from "next/image";
-import igor from "public/igor.jpg";
-import { Canvas } from "@react-three/fiber";
-import * as THREE from "three";
-import YTPlayer from "components/yt-player";
 import asciify from "asciify-image";
 import Convert from "ansi-to-html";
 import { cn } from "lib/utils"
+import YTPlayer from 'components/yt-player'
 
 // import type { Metadata } from 'next'
 
@@ -31,13 +21,10 @@ var options: any = {
 
 var ascii_img: any = { __html: "<p>some raw html</p>" };
 
-let scene, camera, renderer, analyser, uniforms;
-
-const fftSize = 128;
-
 const loadClass = "loading";
 // document.body.classList.add(loadClass);
 // document.body.classList.remove(loadClass);
+
 
 export default function Home() {
   asciify("public/igor.jpg", options, function (err, asciified) {
@@ -58,7 +45,7 @@ export default function Home() {
           dangerouslySetInnerHTML={ascii_img}
         ></div>
       </div>
-      {/* <YTPlayer></YTPlayer> */}
+      <YTPlayer></YTPlayer>
     </>
   );
 }

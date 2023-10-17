@@ -11,6 +11,7 @@ module.exports = {
           "var(--font-cascadia-mono)",
           "var(--font-victor-mono)",
           "var(--font-roboto-mono)",
+          "var(--font-space-mono)",
           "monospace",
         ],
       },
