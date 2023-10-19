@@ -19,32 +19,23 @@ var options: any = {
   height: 20,
 };
 
-var ascii_img: any = { __html: "<p>some raw html</p>" };
-
-const loadClass = "loading";
-// document.body.classList.add(loadClass);
-// document.body.classList.remove(loadClass);
-
-
 export default function Home() {
-  asciify("public/igor.jpg", options, function (err, asciified) {
-    if (err) throw err;
+  // var ascii_img: any = { __html: "<p>some raw html</p>" };
+  // const res = await asciify("public/blonde.jpg", options);
 
-    // typeof asciified === "string" ? console.log(asciified) : ascii_img = "";
-    typeof asciified === "string"
-      ? (ascii_img.__html = convert.toHtml(asciified))
-      : (ascii_img = "");
-  });
-
+  //   // typeof asciified === "string" ? console.log(asciified) : ascii_img = "";
+  //   typeof res === "string"
+  //     ? (ascii_img.__html = convert.toHtml(res))
+  //     : (ascii_img = "");
   return (
     <>
-      <div className={`flex justify-center`}>
+      {/* <div className={`flex justify-center`}>
         <div
         // individual style-glow kills performance
-        className={cn("leading-[1.2] w-0")}
+        className={cn("leading-[1.2] w-[380px] ascii")}
           dangerouslySetInnerHTML={ascii_img}
         ></div>
-      </div>
+      </div> */}
       <YTPlayer></YTPlayer>
     </>
   );

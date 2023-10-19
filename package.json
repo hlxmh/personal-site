@@ -17,7 +17,7 @@
     "next": "^13.0.2",
     "patch-package": "^8.0.0",
     "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "react-dom": "^18.2.0",
     "react-youtube": "^10.1.0",
     "remark": "^14.0.2",
     "remark-html": "^15.0.1",
@@ -28,6 +28,7 @@
   "devDependencies": {
     "@types/node": "^18.11.9",
     "@types/react": "^18.0.25",
+    "@types/react-dom": "^18.2.13",
     "@types/splitting": "^1.0.3",
     "@types/youtube-player": "^5.5.8",
     "autoprefixer": "^10.4.16",

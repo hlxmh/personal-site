@@ -79,7 +79,7 @@ function setupTypewriter(t: any) {
   };
 }
 
-export default function Home() {
+export default function Typewriter() {
   useEffect(() => {
     var typer = document.getElementById("typewriter");
     var typewriter = setupTypewriter(typer);

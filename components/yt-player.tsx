@@ -3,16 +3,16 @@
 import YouTube, { YouTubePlayer, YouTubeProps } from "react-youtube";
 import Link from "next/link";
 import style from "styles/txt.module.css";
-import React from "react";
+import React, { startTransition } from "react";
 import PlayerStates from "youtube-player/dist/constants/PlayerStates";
 import { useEffect } from "react";
 import "splitting/dist/splitting.css";
 import "splitting/dist/splitting-cells.css";
 import Splitting from "splitting";
-
-const loadClass = "loading";
-// document.body.classList.add(loadClass);
-// document.body.classList.remove(loadClass);
+import asciify from "lib/asciify"
+import { cn } from "lib/utils"
+import { useFormState, useFormStatus } from 'react-dom'
+import { useTransition } from "react";
 
 /**
  * Class representing one line
@@ -96,6 +96,8 @@ export class TypeShuffle {
 	 */
 	constructor(DOM_el : HTMLDivElement) {
         this.DOM.el = DOM_el;
+        console.log("hhhhh")
+        console.log(this.DOM.el)
         // Apply Splitting (two times to have lines, words and chars)
         const results: Splitting.Result[] = Splitting({
             target: this.DOM.el,
@@ -138,7 +140,7 @@ export class TypeShuffle {
       console.log('bai  bais')
         for (const line of this.lines) {
             for (const cell of line.cells) {
-                console.log(cell.original)
+                // console.log(cell.original)
                 // cell.set('&nbsp;');
             }    
         }
@@ -180,21 +182,33 @@ export class TypeShuffle {
 
 }
 
+const initialState = {
+  __html: null,
+}
 
-
-
+async function asc(b: Function) {
+  var a = await asciify();
+  b(a);
+}
 
 export default function YTPlayer() {
+  
+  let [isPending, startTransition] = useTransition();
+  // const [ascii, formAction] = useFormState(asciify, initialState)
+  const [ascii, setAscii] = React.useState<{ __html: string }>({ __html: "<div class='ascii'>dead<div>" });
+  // setAscii(asciify())
+  // var ascii = {
+  //   __html: "",
+  // }
 
   const [text, setText] = React.useState<TypeShuffle>();
 
   useEffect(() => {
-    const textElement = document.querySelector('.weh');
+    const textElement = document.querySelector('.ascii');
     console.log(textElement)
-    setText(new TypeShuffle(textElement as HTMLDivElement));
-    console.log("oh yeah")
-    // textElement ? text = ts : "";
-    console.log(text)
+
+    if (textElement) setText(new TypeShuffle(textElement as HTMLDivElement));
+    console.log("oh yeah?")
   }, []);
 
 
@@ -206,7 +220,7 @@ export default function YTPlayer() {
   }
 
   const [active, setActive] = React.useState(PLAYLIST.HEART);
-  const [backdrop, setBackdrop] = React.useState("backdrop-hue-rotate-90");
+  const [backdrop, setBackdrop] = React.useState("backdrop-hue-rotate-0");
   // ?????^v
   var player: YouTubePlayer;
   var state: PlayerStates = PlayerStates.PLAYING;
@@ -217,6 +231,24 @@ export default function YTPlayer() {
     console.log(text)
     text ? text.fx3() : console.log("FFFFFFFFFFFFFFF");
   }, [active]);
+
+  useEffect(() => {
+    const textElement = document.querySelector('.ascii');
+    console.log(textElement)
+
+    if (textElement) {
+      // var tmp = new TypeShuffle(textElement as HTMLDivElement);
+      setText(new TypeShuffle(textElement as HTMLDivElement));
+      console.log("oh yeah")
+    }
+    // textElement ? text = ts : "";
+    text ? text.fx3() : console.log("FFFFFFFFFFFFFFF");
+    if (text) console.log("HERE2222")
+  }, [ascii]);
+
+  useEffect(() => {
+    text ? text.fx3() : console.log("FFFFFFFFFFFFFFF");
+  }, [text]);
 
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
     // access to player in all event handlers via event.target
@@ -242,11 +274,11 @@ export default function YTPlayer() {
 
     switch (playlist) {
       case PLAYLIST.HEART: {
-        setBackdrop("backdrop-hue-rotate-90");
+        setBackdrop("backdrop-hue-rotate-0");
         break;
       }
       case PLAYLIST.HIPHOP: {
-        setBackdrop("backdrop-hue-rotate-180");
+        setBackdrop("backdrop-hue-rotate-0");
         break;
       }
       case PLAYLIST.HEART: {
@@ -268,6 +300,8 @@ export default function YTPlayer() {
     }
   }
 
+  // asc(setAscii)
+
   return (
     <>
       <YouTube
@@ -277,6 +311,20 @@ export default function YTPlayer() {
         onReady={onPlayerReady}
         onStateChange={onStateChange}
       />
+          {/* <form action={formAction}>
+
+      <p aria-live="polite" className="sr-only">
+        {ascii?.__html}
+      </p>
+      <input type="submit" value="Submit"></input>
+    </form> */}
+    <div className="flex justify-center">
+              <div
+        // individual style-glow kills performance
+        className={cn("w-[380px] text-[16px]/[1.2]")}
+          dangerouslySetInnerHTML={ascii}
+        ></div>
+        </div>
       <div
         className={[
           "absolute",
@@ -369,15 +417,8 @@ export default function YTPlayer() {
             {" "}
             {state == PlayerStates.PLAYING ? "⏵" : "booo"}{" "}
           </span>
-          <span>next</span>
-        </h3>
-      </div>
-
-
-      <div className="mr-5 absolute bottom-0 right-0 weh">
-        <h3>
-          <span>next NAD THAT HS HOW IFELT WHEN ISAW THAT STUFF</span>
-          <span>AND THERE IS NO MEANING TO IT AT ALL, IT IS WHAT</span>
+          {/* <span onClick={() => startTransition(() => asciify())}>next</span> */}
+          <span onClick={async () => setAscii(await asciify())}>next</span>
         </h3>
       </div>
     </>
