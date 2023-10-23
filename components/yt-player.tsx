@@ -11,7 +11,6 @@ import "splitting/dist/splitting-cells.css";
 import Splitting from "splitting";
 import asciify from "lib/asciify"
 import { cn } from "lib/utils"
-import { useFormState, useFormStatus } from 'react-dom'
 import { useTransition } from "react";
 
 /**
@@ -49,6 +48,8 @@ class Cell {
     original;
     // current state/innerHTML
     state;
+    color;
+    originalColor;
 
 	/**
 	 * Constructor.
@@ -60,11 +61,10 @@ class Cell {
     } = {}) {
 		this.DOM.el = DOM_el;
         this.original = this.DOM.el.innerHTML;
-        console.log("ohhhhhhh")
-        // console.log(this.original)
         this.state = this.original;
         this.position = position;
         this.previousCellPosition = previousCellPosition;
+        this.color = this.originalColor = this.DOM.el.parentElement!!.parentElement!!.parentElement!!.style.color;
 	}
     /**
      * @param {string} value
@@ -88,7 +88,6 @@ export class TypeShuffle {
     lines = [] as Line[];
     // array of letters and symbols
     lettersAndSymbols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '!', '@', '#', '$', '&', '*', '(', ')', '-', '_', '+', '=', '/', '[', ']', '{', '}', ';', ':', '<', '>', ',', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    totalChars = 0;
 
 	/**
 	 * Constructor.
@@ -96,8 +95,6 @@ export class TypeShuffle {
 	 */
 	constructor(DOM_el : HTMLDivElement) {
         this.DOM.el = DOM_el;
-        console.log("hhhhh")
-        console.log(this.DOM.el)
         // Apply Splitting (two times to have lines, words and chars)
         const results: Splitting.Result[] = Splitting({
             target: this.DOM.el,
@@ -127,23 +124,47 @@ export class TypeShuffle {
             }
             line.cells = cells;
             this.lines.push(line);
-            this.totalChars += charCount;
         }
+
+        this.initTransition();
 
         // TODO
         // window.addEventListener('resize', () => this.resize());
 	}
-    /**
-     * clear all the cells chars, very likely not needed
-     */
-    clearCells() {
-      console.log('bai  bais')
-        for (const line of this.lines) {
-            for (const cell of line.cells) {
-                // console.log(cell.original)
-                // cell.set('&nbsp;');
-            }    
-        }
+    change(DOM_el : HTMLDivElement) {
+      // Apply Splitting (two times to have lines, words and chars)
+      const tmpLines : Line[] = [];
+
+      const results: Splitting.Result[] = Splitting({
+          target: DOM_el,
+          by: 'lines'
+      })
+      results.forEach(s => Splitting({ target: s.words }));
+      
+      // for every line
+      for (const [linePosition, lineArr] of results[0].lines!!.entries()) {
+          // create a new Line
+          const line = new Line(linePosition);
+          let cells = [];
+          let charCount = 0;
+          // for every word of each line
+          for (const word of lineArr) {
+              // for every character of each line
+              for (const char of [...word.querySelectorAll('.char')]) {
+                  cells.push(
+                      new Cell(char as HTMLSpanElement, {
+                          position: charCount,
+                          previousCellPosition: charCount === 0 ? -1 : charCount-1
+                      })
+                  );
+                  ++charCount;
+              }
+          }
+          line.cells = cells;
+          tmpLines.push(line);
+      }
+
+      this.changeTransition(tmpLines);
     }
     /**
      * 
@@ -152,65 +173,115 @@ export class TypeShuffle {
     getRandomChar() {
         return this.lettersAndSymbols[Math.floor(Math.random() * this.lettersAndSymbols.length)];
     }
+
     randomNumber(min: number, max: number) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
-    fx3() {
-        const MAX_CELL_ITERATIONS = 10;
-        this.clearCells();
 
-        const loop = (line : Line, cell : Cell, iteration = 0) => {
-            if ( iteration === MAX_CELL_ITERATIONS-1 ) {
-                cell.set(cell.original);
-            }
-            else {
-                cell.set(this.getRandomChar());
-            }
-
-            ++iteration;
-            if ( iteration < MAX_CELL_ITERATIONS ) {
-                setTimeout(() => loop(line, cell, iteration), 80);
-            }
-        };
-
-        for (const line of this.lines) {
-            for (const cell of line.cells) {
-                setTimeout(() => loop(line, cell), this.randomNumber(0,2000));
-            }
-        }
+    clearCells() {
+      for (const line of this.lines) {
+          for (const cell of line.cells) {
+              cell.set('&nbsp;');
+          }    
+      }
     }
 
+    initTransition() {
+      // max iterations for each cell to change the current value
+      const MAX_CELL_ITERATIONS = 6;
+      this.clearCells();
+
+      const loop = (line : Line, cell : Cell, iteration = 0) => {
+          if ( iteration === MAX_CELL_ITERATIONS-1 ) {
+              cell.set(cell.original);
+          }
+          else {
+              cell.set(this.getRandomChar());
+          }
+
+          ++iteration;
+          if ( iteration < MAX_CELL_ITERATIONS ) {
+              setTimeout(() => loop(line, cell, iteration), 80);
+          }
+      };
+
+      for (const line of this.lines) {
+          for (const cell of line.cells) {
+              setTimeout(() => loop(line, cell), this.randomNumber(0,3000));
+          }
+      }
+    }
+
+    changeTransition(tmpLines: Line[]) {
+      // max iterations for each cell to change the current value
+      const MAX_CELL_ITERATIONS = 10;
+      const loop = (line : Line, cell : Cell, iteration = 0) => {
+          if ( iteration === MAX_CELL_ITERATIONS-1 ) {
+              cell.set(tmpLines[line.position].cells[cell.position].original);
+             
+              cell.color = tmpLines[line.position].cells[cell.position].originalColor;
+              cell.DOM.el.style.color = cell.color;
+          }
+          else {
+              cell.set(this.getRandomChar());
+
+              if (Math.random() > 0.5) {
+                cell.DOM.el.style.color = tmpLines[line.position].cells[cell.position].originalColor;
+              } else {
+                cell.DOM.el.style.color = cell.color;
+              }
+          }
+
+          ++iteration;
+          if ( iteration < MAX_CELL_ITERATIONS ) {
+              setTimeout(() => loop(line, cell, iteration), 80);
+          }
+      };
+
+      for (const line of this.lines) {
+          for (const cell of line.cells) {
+              setTimeout(() => loop(line, cell), this.randomNumber(0,2000));
+          }
+      }
+    }
 }
 
-const initialState = {
-  __html: null,
-}
-
-async function asc(b: Function) {
-  var a = await asciify();
-  b(a);
+async function initImg(set: Function) {
+  var ascii = await asciify("public/igor.jpg");
+  ascii.__html = '<div class="ascii">' + ascii.__html + '</div>';
+  set(ascii);
 }
 
 export default function YTPlayer() {
-  
-  let [isPending, startTransition] = useTransition();
-  // const [ascii, formAction] = useFormState(asciify, initialState)
-  const [ascii, setAscii] = React.useState<{ __html: string }>({ __html: "<div class='ascii'>dead<div>" });
-  // setAscii(asciify())
-  // var ascii = {
-  //   __html: "",
-  // }
-
+  // let [isPending, startTransition] = useTransition();
+  const [ascii, setAscii] = React.useState<{ __html: string }>({ __html: "<div class='ascii'>loading...<div>" });
   const [text, setText] = React.useState<TypeShuffle>();
 
+  // runs once (fix), load in html for ascii
+  // maybe useTransition/Suspense this
   useEffect(() => {
-    const textElement = document.querySelector('.ascii');
-    console.log(textElement)
-
-    if (textElement) setText(new TypeShuffle(textElement as HTMLDivElement));
-    console.log("oh yeah?")
+    initImg(setAscii)
   }, []);
 
+  // runs once (fix) after ascii loaded, splits html for transitions and does initial load transition
+  useEffect(() => {
+    const textElement = document.querySelector('.ascii');
+
+    if (textElement) {
+      setText(new TypeShuffle(textElement as HTMLDivElement));
+    }
+  }, [ascii]);
+
+  // all other img transitions
+  // need to keep the same TypeShuffle for smooth transition
+  // instead of fn, useState w/ name of file?
+  async function changeAscii() {
+    var html = document.createElement("div")
+    var res = await asciify("public/blonde.jpg");
+    html.innerHTML = res.__html;
+    html.classList.add("ascii")
+    text!!.change(html)
+  }
 
   enum PLAYLIST {
     HEART = 0,
@@ -224,31 +295,6 @@ export default function YTPlayer() {
   // ?????^v
   var player: YouTubePlayer;
   var state: PlayerStates = PlayerStates.PLAYING;
-
-  // fix this dependency
-  useEffect(() => {
-    console.log("oh no")
-    console.log(text)
-    text ? text.fx3() : console.log("FFFFFFFFFFFFFFF");
-  }, [active]);
-
-  useEffect(() => {
-    const textElement = document.querySelector('.ascii');
-    console.log(textElement)
-
-    if (textElement) {
-      // var tmp = new TypeShuffle(textElement as HTMLDivElement);
-      setText(new TypeShuffle(textElement as HTMLDivElement));
-      console.log("oh yeah")
-    }
-    // textElement ? text = ts : "";
-    text ? text.fx3() : console.log("FFFFFFFFFFFFFFF");
-    if (text) console.log("HERE2222")
-  }, [ascii]);
-
-  useEffect(() => {
-    text ? text.fx3() : console.log("FFFFFFFFFFFFFFF");
-  }, [text]);
 
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
     // access to player in all event handlers via event.target
@@ -300,7 +346,6 @@ export default function YTPlayer() {
     }
   }
 
-  // asc(setAscii)
 
   return (
     <>
@@ -311,13 +356,6 @@ export default function YTPlayer() {
         onReady={onPlayerReady}
         onStateChange={onStateChange}
       />
-          {/* <form action={formAction}>
-
-      <p aria-live="polite" className="sr-only">
-        {ascii?.__html}
-      </p>
-      <input type="submit" value="Submit"></input>
-    </form> */}
     <div className="flex justify-center">
               <div
         // individual style-glow kills performance
@@ -418,7 +456,8 @@ export default function YTPlayer() {
             {state == PlayerStates.PLAYING ? "⏵" : "booo"}{" "}
           </span>
           {/* <span onClick={() => startTransition(() => asciify())}>next</span> */}
-          <span onClick={async () => setAscii(await asciify())}>next</span>
+          <span onClick={async () => await changeAscii()}>next</span>
+          {/* <span onClick={async () => setAscii(await asciify("public/blonde.jpg"))}>next</span> */}
         </h3>
       </div>
     </>
