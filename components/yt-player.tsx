@@ -1,17 +1,16 @@
 "use client";
 
+// Youtube component needs function props so it has to be client... boo
 import YouTube, { YouTubePlayer, YouTubeProps } from "react-youtube";
 import Link from "next/link";
 import style from "styles/txt.module.css";
-import React, { startTransition } from "react";
+import { startTransition, useEffect, useState } from "react";
 import PlayerStates from "youtube-player/dist/constants/PlayerStates";
-import { useEffect } from "react";
 import "splitting/dist/splitting.css";
 import "splitting/dist/splitting-cells.css";
 import Splitting from "splitting";
 import asciify from "lib/asciify"
 import { cn } from "lib/utils"
-import { useTransition } from "react";
 
 /**
  * Class representing one line
@@ -38,6 +37,7 @@ class Cell {
 	// DOM elements
 	DOM = {
 		// the char element (<span>)
+    // should be able to not create a span just for this
 		el: document.createElement('span'),
 	};
     // cell position
@@ -125,9 +125,7 @@ export class TypeShuffle {
             line.cells = cells;
             this.lines.push(line);
         }
-
-        this.initTransition();
-
+        this.clearCells();
         // TODO
         // window.addEventListener('resize', () => this.resize());
 	}
@@ -189,7 +187,6 @@ export class TypeShuffle {
     initTransition() {
       // max iterations for each cell to change the current value
       const MAX_CELL_ITERATIONS = 6;
-      this.clearCells();
 
       const loop = (line : Line, cell : Cell, iteration = 0) => {
           if ( iteration === MAX_CELL_ITERATIONS-1 ) {
@@ -246,41 +243,54 @@ export class TypeShuffle {
     }
 }
 
-async function initImg(set: Function) {
-  var ascii = await asciify("public/igor.jpg");
-  ascii.__html = '<div class="ascii">' + ascii.__html + '</div>';
-  set(ascii);
-}
+
 
 export default function YTPlayer() {
-  // let [isPending, startTransition] = useTransition();
-  const [ascii, setAscii] = React.useState<{ __html: string }>({ __html: "<div class='ascii'>loading...<div>" });
-  const [text, setText] = React.useState<TypeShuffle>();
+  const [ascii, setAscii] = useState<{ __html: string }>({ __html: "<div class='ascii'>loading...<div>" });
+  const [text, setText] = useState<TypeShuffle>();
+  
+  // can't directly make TypeShuffle bc it has to point to the initialized element
+  // so we gotta do this stupid style manipulation to make the loading effect work
+  async function initImg() {
+    var html = document.createElement("div")
+    var res = await asciify("public/igor.jpg");
+    html.innerHTML = res.__html;
+    html.classList.add("ascii")
+    html.style.display = "none"
+    startTransition(() => setAscii({__html: html.outerHTML}))
+  }
 
-  // runs once (fix), load in html for ascii
-  // maybe useTransition/Suspense this
+  // runs once, load in html for ascii
+  // has to be in useEffect bc initImg is async
+  // will turn into infinite render fun if outside
   useEffect(() => {
-    initImg(setAscii)
+    initImg()
   }, []);
 
-  // runs once (fix) after ascii loaded, splits html for transitions and does initial load transition
+  // runs once after ascii set, splits html for transitions
   useEffect(() => {
     const textElement = document.querySelector('.ascii');
-
     if (textElement) {
-      setText(new TypeShuffle(textElement as HTMLDivElement));
+      startTransition(() => setText(new TypeShuffle(textElement as HTMLDivElement)))
     }
   }, [ascii]);
+  
+  // runs once after split complete, does initial transition
+  useEffect(() => {
+    const textElement = document.querySelector('.ascii');
+    (textElement as HTMLDivElement).style.display = "block"
+    text?.initTransition() 
+  }, [text]);
 
   // all other img transitions
-  // need to keep the same TypeShuffle for smooth transition
+  // done this way bc need to keep the same TypeShuffle for smooth transition
   // instead of fn, useState w/ name of file?
   async function changeAscii() {
     var html = document.createElement("div")
-    var res = await asciify("public/blonde.jpg");
+    var res = await asciify("public/blonde.jpg")
     html.innerHTML = res.__html;
     html.classList.add("ascii")
-    text!!.change(html)
+    text?.change(html)
   }
 
   enum PLAYLIST {
@@ -290,9 +300,9 @@ export default function YTPlayer() {
     JP = 3,
   }
 
-  const [active, setActive] = React.useState(PLAYLIST.HEART);
-  const [backdrop, setBackdrop] = React.useState("backdrop-hue-rotate-0");
-  // ?????^v
+  const [active, setActive] = useState(PLAYLIST.HEART);
+  const [backdrop, setBackdrop] = useState("backdrop-hue-rotate-0");
+
   var player: YouTubePlayer;
   var state: PlayerStates = PlayerStates.PLAYING;
 
@@ -356,13 +366,13 @@ export default function YTPlayer() {
         onReady={onPlayerReady}
         onStateChange={onStateChange}
       />
-    <div className="flex justify-center">
-              <div
-        // individual style-glow kills performance
-        className={cn("w-[380px] text-[16px]/[1.2]")}
+      <div className="flex justify-center">
+        <div
+          // individual style-glow kills performance
+          className={cn("w-[380px] text-[16px]/[1.2]")}
           dangerouslySetInnerHTML={ascii}
         ></div>
-        </div>
+      </div>
       <div
         className={[
           "absolute",
@@ -373,16 +383,12 @@ export default function YTPlayer() {
           backdrop,
         ].join(" ")}
       ></div>
-      <div className="w-full">
-
-      </div>
       <h2 className="mt-20 ml-10">title</h2>
       <h3 className="ml-10">artist</h3>
 
       <div className="ml-5 absolute bottom-0">
         <h2>playlist</h2>
         <nav>
-          {/* <div className={active == PLAYLIST.HEART ? 'active' : ''}></div> */}
           <Link
             onMouseEnter={() => {
               changeActive(PLAYLIST.HEART);
