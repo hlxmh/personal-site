@@ -37,7 +37,6 @@ class Cell {
 	// DOM elements
 	DOM = {
 		// the char element (<span>)
-    // should be able to not create a span just for this
 		el: document.createElement('span'),
 	};
     // cell position
@@ -184,9 +183,10 @@ export class TypeShuffle {
       }
     }
 
+    // experiment with slower, very gradual
     initTransition() {
       // max iterations for each cell to change the current value
-      const MAX_CELL_ITERATIONS = 6;
+      const MAX_CELL_ITERATIONS = 5;
 
       const loop = (line : Line, cell : Cell, iteration = 0) => {
           if ( iteration === MAX_CELL_ITERATIONS-1 ) {
@@ -198,20 +198,20 @@ export class TypeShuffle {
 
           ++iteration;
           if ( iteration < MAX_CELL_ITERATIONS ) {
-              setTimeout(() => loop(line, cell, iteration), 80);
+              setTimeout(() => loop(line, cell, iteration), 40);
           }
       };
 
       for (const line of this.lines) {
           for (const cell of line.cells) {
-              setTimeout(() => loop(line, cell), this.randomNumber(0,3000));
+              setTimeout(() => loop(line, cell), this.randomNumber(0,1500));
           }
       }
     }
 
     changeTransition(tmpLines: Line[]) {
       // max iterations for each cell to change the current value
-      const MAX_CELL_ITERATIONS = 10;
+      const MAX_CELL_ITERATIONS = 8;
       const loop = (line : Line, cell : Cell, iteration = 0) => {
           if ( iteration === MAX_CELL_ITERATIONS-1 ) {
               cell.set(tmpLines[line.position].cells[cell.position].original);
@@ -231,39 +231,59 @@ export class TypeShuffle {
 
           ++iteration;
           if ( iteration < MAX_CELL_ITERATIONS ) {
-              setTimeout(() => loop(line, cell, iteration), 80);
+              setTimeout(() => loop(line, cell, iteration), 40);
           }
       };
 
       for (const line of this.lines) {
           for (const cell of line.cells) {
-              setTimeout(() => loop(line, cell), this.randomNumber(0,2000));
+              setTimeout(() => loop(line, cell), this.randomNumber(0, 500));
           }
       }
     }
 }
 
+type AppProps = {
+  playlists: {
+    title: string,
+    bg: number,
+    tracks: { title: string, artist: string, url: string, cover: string }[]
+  }[]
+}
+export default function YTPlayer({playlists} :  AppProps) {
+  // simplest answer is to just manually sync these w/ playlists prop
+  enum PLAYLIST {
+    HEART = 0,
+    HIPHOP = 1,
+    POP = 2,
+    JP = 3,
+  }
 
-
-export default function YTPlayer() {
   const [ascii, setAscii] = useState<{ __html: string }>({ __html: "<div class='ascii'>loading...<div>" });
   const [text, setText] = useState<TypeShuffle>();
-  
-  // can't directly make TypeShuffle bc it has to point to the initialized element
-  // so we gotta do this stupid style manipulation to make the loading effect work
-  async function initImg() {
-    var html = document.createElement("div")
-    var res = await asciify("public/igor.jpg");
-    html.innerHTML = res.__html;
-    html.classList.add("ascii")
-    html.style.display = "none"
-    startTransition(() => setAscii({__html: html.outerHTML}))
-  }
+  const [active, setActive] = useState(PLAYLIST.HEART);
+  const [backdrop, setBackdrop] = useState("backdrop-hue-rotate-0");
+  const [curTrack, setCurTrack] = useState(0);
+
+  // make text transitions (L to R)
+  const trackTitle = playlists[active].tracks[curTrack].title;
+  const trackArtist = playlists[active].tracks[curTrack].artist;
 
   // runs once, load in html for ascii
   // has to be in useEffect bc initImg is async
   // will turn into infinite render fun if outside
   useEffect(() => {
+    // can't directly make TypeShuffle bc it has to point to the initialized element
+    // so we gotta do this stupid style manipulation to make the loading effect work
+    async function initImg() {
+      var html = document.createElement("div")
+      var res = await asciify(playlists[active].tracks[curTrack].cover);
+      html.innerHTML = res.__html;
+      html.classList.add("ascii")
+      html.style.display = "none"
+      startTransition(() => setAscii({__html: html.outerHTML}))
+    }
+
     initImg()
   }, []);
 
@@ -285,44 +305,41 @@ export default function YTPlayer() {
   // all other img transitions
   // done this way bc need to keep the same TypeShuffle for smooth transition
   // instead of fn, useState w/ name of file?
-  async function changeAscii() {
+  async function changeAscii(img: string) {
     var html = document.createElement("div")
-    var res = await asciify("public/blonde.jpg")
+    var res = await asciify(img)
     html.innerHTML = res.__html;
     html.classList.add("ascii")
     text?.change(html)
   }
 
-  enum PLAYLIST {
-    HEART = 0,
-    HIPHOP = 1,
-    POP = 2,
-    JP = 3,
-  }
-
-  const [active, setActive] = useState(PLAYLIST.HEART);
-  const [backdrop, setBackdrop] = useState("backdrop-hue-rotate-0");
+  // couple options to handle the player, if this breaks down just change video from videoId prop
+  // though ideally don't because it'll re-render the whole thing (it might already be though)
 
   var player: YouTubePlayer;
   var state: PlayerStates = PlayerStates.PLAYING;
 
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
-    // access to player in all event handlers via event.target
+    console.log("WWWWWW")
     player = event.target;
+    // If you have shuffled the playlist, the return value will identify the video's order within the shuffled playlist.
+    // shuffle on after first visit (server action?), will have to init img stuff after shuffle i guess
   };
 
   const onStateChange: YouTubeProps["onStateChange"] = async (event) => {
     state = await event.target.getPlayerState();
-    if (state == YouTube.PlayerState.PLAYING) {
-    }
-  };
+    console.log(state);
+    // have to re-define player after video changes, idk i already tried to fix it using patch-package
+    player = event.target;
 
-  const opts: YouTubeProps["opts"] = {
-    height: "0",
-    width: "0",
-    playerVars: {
-      autoplay: 1,
-    },
+    if (state === YouTube.PlayerState.UNSTARTED) {
+      const idx = await event.target.getPlaylistIndex()
+      if (curTrack != idx) {
+        // try to change it reactively?
+        changeAscii(playlists[active].tracks[idx].cover)
+        setCurTrack(idx)
+      }
+    }
   };
 
   function changeActive(playlist: PLAYLIST) {
@@ -356,12 +373,27 @@ export default function YTPlayer() {
     }
   }
 
+  function next() {
+    player.nextVideo();
+  }
+
+  const opts: YouTubeProps["opts"] = {
+    height: "0",
+    width: "0",
+    playerVars: {
+      autoplay: 1,
+      controls: 0,
+      disablekb: 1,
+      fs: 0,
+      playlist: playlists[active].tracks.map((track) => track.url).join(","),
+      loop: 1,
+    },
+  };
 
   return (
     <>
       <YouTube
         id="yt"
-        videoId="9JQDPjpfiGw"
         opts={opts}
         onReady={onPlayerReady}
         onStateChange={onStateChange}
@@ -369,7 +401,8 @@ export default function YTPlayer() {
       <div className="flex justify-center">
         <div
           // individual style-glow kills performance
-          className={cn("w-[380px] text-[16px]/[1.2]")}
+          // have to manually set width.. though not a big deal
+          className={cn("w-[410px] text-[14px]/[1.2]")}
           dangerouslySetInnerHTML={ascii}
         ></div>
       </div>
@@ -383,8 +416,8 @@ export default function YTPlayer() {
           backdrop,
         ].join(" ")}
       ></div>
-      <h2 className="mt-20 ml-10">title</h2>
-      <h3 className="ml-10">artist</h3>
+      <h2 className="mt-20 ml-10">{trackTitle}</h2>
+      <h3 className="ml-10">{trackArtist}</h3>
 
       <div className="ml-5 absolute bottom-0">
         <h2>playlist</h2>
@@ -462,7 +495,9 @@ export default function YTPlayer() {
             {state == PlayerStates.PLAYING ? "⏵" : "booo"}{" "}
           </span>
           {/* <span onClick={() => startTransition(() => asciify())}>next</span> */}
-          <span onClick={async () => await changeAscii()}>next</span>
+          {/* <span onClick={async () => await changeAscii()}>next</span> */}
+          <span onClick={next}>next</span>
+
           {/* <span onClick={async () => setAscii(await asciify("public/blonde.jpg"))}>next</span> */}
         </h3>
       </div>

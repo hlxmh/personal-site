@@ -7,8 +7,8 @@ export default async function html_asciify(img: string) {
 var convert = new Convert();
 var options: any = {
     fit: "box",
-    width: 20,
-    height: 20,
+    width: 25,
+    height: 25,
   };
   var ascii_img: any = { __html: "" };
   const res = await asciify(img, options);

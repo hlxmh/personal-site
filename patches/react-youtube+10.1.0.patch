@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-youtube/dist/YouTube.js b/node_modules/react-youtube/dist/YouTube.js
+index 48ff958..72f5b7a 100644
+--- a/node_modules/react-youtube/dist/YouTube.js
++++ b/node_modules/react-youtube/dist/YouTube.js
+@@ -91,7 +91,7 @@ function filterResetOptions(opts = {}) {
+   });
+ }
+ function shouldResetPlayer(prevProps, props) {
+-  return prevProps.videoId !== props.videoId || !(0, import_fast_deep_equal.default)(filterResetOptions(prevProps.opts), filterResetOptions(props.opts));
++  return !(0, import_fast_deep_equal.default)(filterResetOptions(prevProps.opts), filterResetOptions(props.opts));
+ }
+ function shouldUpdatePlayer(prevProps, props) {
+   var _a, _b, _c, _d;
