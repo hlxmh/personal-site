@@ -7,7 +7,7 @@ export async function getToken() {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: 'grant_type=client_credentials&client_id=22ccd93026c2444cb2371026caedbf78&client_secret=798c9092866043f0b912d668d92d45d5',
+        body: 'grant_type=client_credentials&client_id=22ccd93026c2444cb2371026caedbf78&client_secret=e368a3c1b7a74d02be2ca73e2e48fc57',
       })
    
     if (!res.ok) {

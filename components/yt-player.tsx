@@ -4,7 +4,7 @@
 import YouTube, { YouTubePlayer, YouTubeProps } from "react-youtube";
 import Link from "next/link";
 import style from "styles/txt.module.css";
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import PlayerStates from "youtube-player/dist/constants/PlayerStates";
 import "splitting/dist/splitting.css";
 import "splitting/dist/splitting-cells.css";
@@ -243,6 +243,8 @@ export class TypeShuffle {
     }
 }
 
+// need to add a way to not screw the transition if it gets spammed
+
 type AppProps = {
   playlists: {
     title: string,
@@ -250,6 +252,7 @@ type AppProps = {
     tracks: { title: string, artist: string, url: string, cover: string }[]
   }[]
 }
+
 export default function YTPlayer({playlists} :  AppProps) {
   // simplest answer is to just manually sync these w/ playlists prop
   enum PLAYLIST {
@@ -261,13 +264,18 @@ export default function YTPlayer({playlists} :  AppProps) {
 
   const [ascii, setAscii] = useState<{ __html: string }>({ __html: "<div class='ascii'>loading...<div>" });
   const [text, setText] = useState<TypeShuffle>();
-  const [active, setActive] = useState(PLAYLIST.HEART);
+  const [curList, setCurList] = useState(PLAYLIST.HEART);
   const [backdrop, setBackdrop] = useState("backdrop-hue-rotate-0");
   const [curTrack, setCurTrack] = useState(0);
 
+  const player = useRef<YouTubePlayer>();
+  const oldList = useRef(curList);
+  const oldTrack = useRef(curTrack);
+
+
   // make text transitions (L to R)
-  const trackTitle = playlists[active].tracks[curTrack].title;
-  const trackArtist = playlists[active].tracks[curTrack].artist;
+  const trackTitle = playlists[curList].tracks[curTrack].title;
+  const trackArtist = playlists[curList].tracks[curTrack].artist;
 
   // runs once, load in html for ascii
   // has to be in useEffect bc initImg is async
@@ -277,7 +285,7 @@ export default function YTPlayer({playlists} :  AppProps) {
     // so we gotta do this stupid style manipulation to make the loading effect work
     async function initImg() {
       var html = document.createElement("div")
-      var res = await asciify(playlists[active].tracks[curTrack].cover);
+      var res = await asciify(playlists[curList].tracks[curTrack].cover);
       html.innerHTML = res.__html;
       html.classList.add("ascii")
       html.style.display = "none"
@@ -303,6 +311,27 @@ export default function YTPlayer({playlists} :  AppProps) {
   }, [text]);
 
   // all other img transitions
+  useEffect(() => {
+    // worried about double effect
+    // if (skipFlag) {
+      console.log("waaaaaaaa")
+      console.log(player.current)
+
+      async function changeAscii(img: string) {
+        var html = document.createElement("div")
+        var res = await asciify(img)
+        html.innerHTML = res.__html;
+        html.classList.add("ascii")
+        text?.change(html)
+      }
+      
+      changeAscii(playlists[curList].tracks[curTrack].cover)
+
+      oldList.current = curList;
+      oldTrack.current = curTrack;
+    // }
+  }, [curList, curTrack]);
+
   // done this way bc need to keep the same TypeShuffle for smooth transition
   // instead of fn, useState w/ name of file?
   async function changeAscii(img: string) {
@@ -316,12 +345,11 @@ export default function YTPlayer({playlists} :  AppProps) {
   // couple options to handle the player, if this breaks down just change video from videoId prop
   // though ideally don't because it'll re-render the whole thing (it might already be though)
 
-  var player: YouTubePlayer;
   var state: PlayerStates = PlayerStates.PLAYING;
 
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
     console.log("WWWWWW")
-    player = event.target;
+    player.current = event.target;
     // If you have shuffled the playlist, the return value will identify the video's order within the shuffled playlist.
     // shuffle on after first visit (server action?), will have to init img stuff after shuffle i guess
   };
@@ -329,21 +357,26 @@ export default function YTPlayer({playlists} :  AppProps) {
   const onStateChange: YouTubeProps["onStateChange"] = async (event) => {
     state = await event.target.getPlayerState();
     console.log(state);
-    // have to re-define player after video changes, idk i already tried to fix it using patch-package
-    player = event.target;
 
     if (state === YouTube.PlayerState.UNSTARTED) {
       const idx = await event.target.getPlaylistIndex()
       if (curTrack != idx) {
         // try to change it reactively?
-        changeAscii(playlists[active].tracks[idx].cover)
+        // as far as i can tell, this also works on playlist change
+        // changeAscii(playlists[curList].tracks[idx].cover)
         setCurTrack(idx)
       }
     }
   };
 
-  function changeActive(playlist: PLAYLIST) {
-    setActive(playlist);
+  function changeCurList(playlist: PLAYLIST) {
+
+    setCurList(playlist);
+    console.log("wah")
+    // if (curTrack === 0) {
+    //   skipFlag.current = true;
+    // }
+    // maybe multiple effects for active playlist?
 
     switch (playlist) {
       case PLAYLIST.HEART: {
@@ -367,14 +400,14 @@ export default function YTPlayer({playlists} :  AppProps) {
 
   function playPause() {
     if (state == PlayerStates.PLAYING) {
-      player.pauseVideo();
+      player.current?.pauseVideo();
     } else {
-      player.playVideo();
+      player.current?.playVideo();
     }
   }
 
   function next() {
-    player.nextVideo();
+    player.current?.nextVideo();
   }
 
   const opts: YouTubeProps["opts"] = {
@@ -385,7 +418,7 @@ export default function YTPlayer({playlists} :  AppProps) {
       controls: 0,
       disablekb: 1,
       fs: 0,
-      playlist: playlists[active].tracks.map((track) => track.url).join(","),
+      playlist: playlists[curList].tracks.map((track) => track.url).join(","),
       loop: 1,
     },
   };
@@ -394,6 +427,9 @@ export default function YTPlayer({playlists} :  AppProps) {
     <>
       <YouTube
         id="yt"
+        title={playlists[curList].title}
+        className="boooo"
+        iframeClassName="bahhh"
         opts={opts}
         onReady={onPlayerReady}
         onStateChange={onStateChange}
@@ -424,14 +460,14 @@ export default function YTPlayer({playlists} :  AppProps) {
         <nav>
           <Link
             onMouseEnter={() => {
-              changeActive(PLAYLIST.HEART);
+              changeCurList(PLAYLIST.HEART);
             }}
             className={[
               style.menu__item,
               "mb-5",
               "post",
               "before:content-['']",
-              active == PLAYLIST.HEART ? "bg-black" : "",
+              curList == PLAYLIST.HEART ? "bg-black" : "",
             ].join(" ")}
             href="https://google.com"
             target="_blank"
@@ -442,14 +478,14 @@ export default function YTPlayer({playlists} :  AppProps) {
           </Link>
           <Link
             onMouseEnter={() => {
-              changeActive(PLAYLIST.HIPHOP);
+              changeCurList(PLAYLIST.HIPHOP);
             }}
             className={[
               style.menu__item,
               "mb-5",
               "post",
               "before:content-['']",
-              active == PLAYLIST.HIPHOP ? "bg-black" : "",
+              curList == PLAYLIST.HIPHOP ? "bg-black" : "",
             ].join(" ")}
             href="https://google.com"
             target="_blank"

@@ -51,20 +51,16 @@ export default async function Sound() {
   const intro = { title: "Intro", bg: 0, tracks: [
     { title: "Self Control", artist: "Frank Ocean", url: "BME88lS6aVY", cover: "" },
     { title: "A BOY IS A GUN*", artist: "Tyler, the Creator", url: "9JQDPjpfiGw", cover: ""},
+    { title: "kyu-kurarin", artist: "iyowa", url: "2b1IexhKPz4", cover: ""},
   ] }
 
-  // intro.tracks = [
-  //   new Track("Self Control", "Frank Ocean", "uzS3WG6__G4"),
-  //   new Track("A BOY IS A GUN*", "Tyler, the Creator", "9JQDPjpfiGw"),
-  // ]
+  const hiphop = { title: "Intro", bg: 0, tracks: [
+    { title: "kyu-kurarin", artist: "iyowa", url: "2b1IexhKPz4", cover: ""},
+    { title: "Pink and White", artist: "Frank Ocean", url: "uzS3WG6__G4", cover: "" },
+    { title: "A BOY IS A GUN*", artist: "Tyler, the Creator", url: "9JQDPjpfiGw", cover: ""},
+  ] }
 
-  const hiphop = new Playlist("Hiphop", 30)
-  hiphop.tracks = [
-    new Track("A BOY IS A GUN*", "Tyler, the Creator", "9JQDPjpfiGw"),
-    new Track("Pink and White", "Frank Ocean", "uzS3WG6__G4")
-  ]
-
-  const playlists = [intro]
+  const playlists = [intro, hiphop]
 
   var res = await getToken();
   console.log(res)
