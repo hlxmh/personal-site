@@ -87,7 +87,12 @@ export class TypeShuffle {
     lines = [] as Line[];
     // array of letters and symbols
     lettersAndSymbols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '!', '@', '#', '$', '&', '*', '(', ')', '-', '_', '+', '=', '/', '[', ']', '{', '}', ';', ':', '<', '>', ',', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-
+    
+    // to prevent multi-transition bugs
+    totalChars = 0;
+    inProgress = false;
+    transQueue = [] as Line[][];
+  
 	/**
 	 * Constructor.
 	 * @param {Element} DOM_el - main text element
@@ -123,6 +128,7 @@ export class TypeShuffle {
             }
             line.cells = cells;
             this.lines.push(line);
+            this.totalChars += charCount;
         }
         this.clearCells();
         // TODO
@@ -161,7 +167,11 @@ export class TypeShuffle {
           tmpLines.push(line);
       }
 
-      this.changeTransition(tmpLines);
+      if (this.inProgress) {
+        this.transQueue.push(tmpLines)
+      } else {
+        this.changeTransition(tmpLines);
+      }
     }
     /**
      * 
@@ -185,54 +195,80 @@ export class TypeShuffle {
 
     // experiment with slower, very gradual
     initTransition() {
+      this.inProgress = true;
+      let finished = 0;
+
       // max iterations for each cell to change the current value
-      const MAX_CELL_ITERATIONS = 5;
+      const MAX_CELL_ITERATIONS = 30;
 
       const loop = (line : Line, cell : Cell, iteration = 0) => {
-          if ( iteration === MAX_CELL_ITERATIONS-1 ) {
-              cell.set(cell.original);
-          }
-          else {
-              cell.set(this.getRandomChar());
-          }
+        if ( iteration === MAX_CELL_ITERATIONS-1 ) {
+            finished++;
+            if (finished === this.totalChars) {
+              // in progress refers to finishing the whole transition
+              // could potentially make a bit smoother by setting inProgress at MAX_CELL_ITERATIONS-9
+              this.inProgress = false
+              if (this.transQueue.length > 0) {
+                this.changeTransition(this.transQueue.shift()!);
+              }
+            }
 
-          ++iteration;
-          if ( iteration < MAX_CELL_ITERATIONS ) {
-              setTimeout(() => loop(line, cell, iteration), 40);
-          }
+            cell.set(cell.original);
+        }
+        else {
+            cell.set(this.getRandomChar());
+        }
+
+        ++iteration;
+        if ( iteration < MAX_CELL_ITERATIONS ) {
+            setTimeout(() => loop(line, cell, iteration), 80);
+        }
       };
 
       for (const line of this.lines) {
           for (const cell of line.cells) {
-              setTimeout(() => loop(line, cell), this.randomNumber(0,1500));
+              setTimeout(() => loop(line, cell), this.randomNumber(0, 20000));
           }
       }
     }
 
     changeTransition(tmpLines: Line[]) {
+      this.inProgress = true;
+      let finished = 0;
+      
       // max iterations for each cell to change the current value
       const MAX_CELL_ITERATIONS = 8;
       const loop = (line : Line, cell : Cell, iteration = 0) => {
-          if ( iteration === MAX_CELL_ITERATIONS-1 ) {
-              cell.set(tmpLines[line.position].cells[cell.position].original);
-             
-              cell.color = tmpLines[line.position].cells[cell.position].originalColor;
+        if (iteration === 0) {
+          finished++;
+          if (finished === this.totalChars) {
+            // in progress refers to starting the loop on every cell, not finishing the whole transition
+            this.inProgress = false
+            if (this.transQueue.length > 0) {
+              this.changeTransition(this.transQueue.shift()!);
+            }
+          }
+        }
+        if ( iteration === MAX_CELL_ITERATIONS-1 ) {
+            cell.set(tmpLines[line.position].cells[cell.position].original);
+          
+            cell.color = tmpLines[line.position].cells[cell.position].originalColor;
+            cell.DOM.el.style.color = cell.color;
+        }
+        else {
+            cell.set(this.getRandomChar());
+
+            if (Math.random() > 0.5) {
+              cell.DOM.el.style.color = tmpLines[line.position].cells[cell.position].originalColor;
+            } else {
               cell.DOM.el.style.color = cell.color;
-          }
-          else {
-              cell.set(this.getRandomChar());
+            }
+        }
 
-              if (Math.random() > 0.5) {
-                cell.DOM.el.style.color = tmpLines[line.position].cells[cell.position].originalColor;
-              } else {
-                cell.DOM.el.style.color = cell.color;
-              }
-          }
-
-          ++iteration;
-          if ( iteration < MAX_CELL_ITERATIONS ) {
-              setTimeout(() => loop(line, cell, iteration), 40);
-          }
+        ++iteration;
+        if ( iteration < MAX_CELL_ITERATIONS ) {
+            setTimeout(() => loop(line, cell, iteration), 80);
+        }
       };
 
       for (const line of this.lines) {
@@ -243,8 +279,6 @@ export class TypeShuffle {
     }
 }
 
-// need to add a way to not screw the transition if it gets spammed
-
 type AppProps = {
   playlists: {
     title: string,
@@ -254,7 +288,7 @@ type AppProps = {
 }
 
 export default function YTPlayer({playlists} :  AppProps) {
-  // simplest answer is to just manually sync these w/ playlists prop
+  // manually synced w/ playlists prop
   enum PLAYLIST {
     HEART = 0,
     HIPHOP = 1,
@@ -264,18 +298,34 @@ export default function YTPlayer({playlists} :  AppProps) {
 
   const [ascii, setAscii] = useState<{ __html: string }>({ __html: "<div class='ascii'>loading...<div>" });
   const [text, setText] = useState<TypeShuffle>();
-  const [curList, setCurList] = useState(PLAYLIST.HEART);
-  const [backdrop, setBackdrop] = useState("backdrop-hue-rotate-0");
-  const [curTrack, setCurTrack] = useState(0);
+  const [playerProps, setPlayerProps] = useState({ playlist: PLAYLIST.HEART, track: 0 });
 
   const player = useRef<YouTubePlayer>();
-  const oldList = useRef(curList);
-  const oldTrack = useRef(curTrack);
-
 
   // make text transitions (L to R)
-  const trackTitle = playlists[curList].tracks[curTrack].title;
-  const trackArtist = playlists[curList].tracks[curTrack].artist;
+  const trackTitle = playlists[playerProps.playlist].tracks[playerProps.track].title;
+  const trackArtist = playlists[playerProps.playlist].tracks[playerProps.track].artist;
+  var backdrop = "backdrop-hue-rotate-0";
+
+
+  switch (playerProps.playlist) {
+    case PLAYLIST.HEART: {
+      backdrop = "backdrop-hue-rotate-0";
+      break;
+    }
+    case PLAYLIST.HIPHOP: {
+      backdrop = "backdrop-hue-rotate-30";
+      break;
+    }
+    case PLAYLIST.HEART: {
+      backdrop = "backdrop-hue-rotate-60";
+      break;
+    }
+    case PLAYLIST.HEART: {
+      backdrop = "backdrop-hue-rotate-30";
+      break;
+    }
+  }
 
   // runs once, load in html for ascii
   // has to be in useEffect bc initImg is async
@@ -285,7 +335,7 @@ export default function YTPlayer({playlists} :  AppProps) {
     // so we gotta do this stupid style manipulation to make the loading effect work
     async function initImg() {
       var html = document.createElement("div")
-      var res = await asciify(playlists[curList].tracks[curTrack].cover);
+      var res = await asciify(playlists[playerProps.playlist].tracks[playerProps.track].cover);
       html.innerHTML = res.__html;
       html.classList.add("ascii")
       html.style.display = "none"
@@ -312,25 +362,16 @@ export default function YTPlayer({playlists} :  AppProps) {
 
   // all other img transitions
   useEffect(() => {
-    // worried about double effect
-    // if (skipFlag) {
-      console.log("waaaaaaaa")
-      console.log(player.current)
-
-      async function changeAscii(img: string) {
-        var html = document.createElement("div")
-        var res = await asciify(img)
-        html.innerHTML = res.__html;
-        html.classList.add("ascii")
-        text?.change(html)
-      }
-      
-      changeAscii(playlists[curList].tracks[curTrack].cover)
-
-      oldList.current = curList;
-      oldTrack.current = curTrack;
-    // }
-  }, [curList, curTrack]);
+    async function changeAscii(img: string) {
+      var html = document.createElement("div")
+      var res = await asciify(img)
+      html.innerHTML = res.__html;
+      html.classList.add("ascii")
+      text?.change(html)
+    }
+    
+    changeAscii(playlists[playerProps.playlist].tracks[playerProps.track].cover)
+  }, [playerProps]);
 
   // done this way bc need to keep the same TypeShuffle for smooth transition
   // instead of fn, useState w/ name of file?
@@ -344,6 +385,7 @@ export default function YTPlayer({playlists} :  AppProps) {
 
   // couple options to handle the player, if this breaks down just change video from videoId prop
   // though ideally don't because it'll re-render the whole thing (it might already be though)
+  // well it definitely does for playlist changing, but idk about video
 
   var state: PlayerStates = PlayerStates.PLAYING;
 
@@ -360,42 +402,15 @@ export default function YTPlayer({playlists} :  AppProps) {
 
     if (state === YouTube.PlayerState.UNSTARTED) {
       const idx = await event.target.getPlaylistIndex()
-      if (curTrack != idx) {
-        // try to change it reactively?
-        // as far as i can tell, this also works on playlist change
-        // changeAscii(playlists[curList].tracks[idx].cover)
-        setCurTrack(idx)
+      if (playerProps.track != idx) {
+        setPlayerProps({playlist: playerProps.playlist, track: idx})
       }
     }
   };
 
+  // kill
   function changeCurList(playlist: PLAYLIST) {
-
-    setCurList(playlist);
-    console.log("wah")
-    // if (curTrack === 0) {
-    //   skipFlag.current = true;
-    // }
-    // maybe multiple effects for active playlist?
-
-    switch (playlist) {
-      case PLAYLIST.HEART: {
-        setBackdrop("backdrop-hue-rotate-0");
-        break;
-      }
-      case PLAYLIST.HIPHOP: {
-        setBackdrop("backdrop-hue-rotate-0");
-        break;
-      }
-      case PLAYLIST.HEART: {
-        setBackdrop("backdrop-hue-rotate-60");
-        break;
-      }
-      case PLAYLIST.HEART: {
-        setBackdrop("backdrop-hue-rotate-30");
-        break;
-      }
-    }
+    setPlayerProps({playlist : playlist, track: 0});
   }
 
   function playPause() {
@@ -418,7 +433,7 @@ export default function YTPlayer({playlists} :  AppProps) {
       controls: 0,
       disablekb: 1,
       fs: 0,
-      playlist: playlists[curList].tracks.map((track) => track.url).join(","),
+      playlist: playlists[playerProps.playlist].tracks.map((track) => track.url).join(","),
       loop: 1,
     },
   };
@@ -427,7 +442,7 @@ export default function YTPlayer({playlists} :  AppProps) {
     <>
       <YouTube
         id="yt"
-        title={playlists[curList].title}
+        title={playlists[playerProps.playlist].title}
         className="boooo"
         iframeClassName="bahhh"
         opts={opts}
@@ -467,7 +482,7 @@ export default function YTPlayer({playlists} :  AppProps) {
               "mb-5",
               "post",
               "before:content-['']",
-              curList == PLAYLIST.HEART ? "bg-black" : "",
+              playerProps.playlist == PLAYLIST.HEART ? "bg-black" : "",
             ].join(" ")}
             href="https://google.com"
             target="_blank"
@@ -485,7 +500,7 @@ export default function YTPlayer({playlists} :  AppProps) {
               "mb-5",
               "post",
               "before:content-['']",
-              curList == PLAYLIST.HIPHOP ? "bg-black" : "",
+              playerProps.playlist == PLAYLIST.HIPHOP ? "bg-black" : "",
             ].join(" ")}
             href="https://google.com"
             target="_blank"
