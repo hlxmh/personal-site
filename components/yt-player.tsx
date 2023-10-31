@@ -4,7 +4,7 @@
 import YouTube, { YouTubePlayer, YouTubeProps } from "react-youtube";
 import Link from "next/link";
 import style from "styles/txt.module.css";
-import { startTransition, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import PlayerStates from "youtube-player/dist/constants/PlayerStates";
 import "splitting/dist/splitting.css";
 import "splitting/dist/splitting-cells.css";
@@ -59,12 +59,15 @@ class Cell {
         previousCellPosition = -1
     } = {}) {
 		this.DOM.el = DOM_el;
-        this.original = this.DOM.el.innerHTML;
+        // need to use attr since the set writes over this.original retroactively for specifically the info text... idk
+        this.original = this.DOM.el.getAttribute("data-char")!;
+        // this.original = this.DOM.el.innerHTML;
         this.state = this.original;
         this.position = position;
         this.previousCellPosition = previousCellPosition;
-        this.color = this.originalColor = this.DOM.el.parentElement!!.parentElement!!.parentElement!!.style.color;
-	}
+        this.color = this.originalColor = this.DOM.el.parentElement?.parentElement?.parentElement?.style.color;
+        this.set('&nbsp;');
+      }
     /**
      * @param {string} value
      */
@@ -104,7 +107,7 @@ export class TypeShuffle {
             target: this.DOM.el,
             by: 'lines'
         })
-        // should just be one?
+        // TODO fix TS decl
         results.forEach(s => Splitting({ target: s.words }));
         
         // for every line
@@ -130,7 +133,6 @@ export class TypeShuffle {
             this.lines.push(line);
             this.totalChars += charCount;
         }
-        this.clearCells();
         // TODO
         // window.addEventListener('resize', () => this.resize());
 	}
@@ -173,6 +175,7 @@ export class TypeShuffle {
         this.changeTransition(tmpLines);
       }
     }
+
     /**
      * 
      * @returns {string} a random char from this.lettersAndSymbols
@@ -185,21 +188,12 @@ export class TypeShuffle {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    clearCells() {
-      for (const line of this.lines) {
-          for (const cell of line.cells) {
-              cell.set('&nbsp;');
-          }    
-      }
-    }
-
-    // experiment with slower, very gradual
     initTransition() {
       this.inProgress = true;
       let finished = 0;
 
-      // max iterations for each cell to change the current value
-      const MAX_CELL_ITERATIONS = 30;
+      // iterations for each cell to change the current value
+      const MAX_CELL_ITERATIONS = 40;
 
       const loop = (line : Line, cell : Cell, iteration = 0) => {
         if ( iteration === MAX_CELL_ITERATIONS-1 ) {
@@ -232,12 +226,39 @@ export class TypeShuffle {
       }
     }
 
+    initTransitionInfo() {
+      // iterations for each cell to change the current value
+      const MAX_CELL_ITERATIONS = 5;
+
+      const loop = (line : number, cell : number, iteration = 0) => {
+        const cellObj = this.lines[line].cells[cell]
+        if ( iteration === MAX_CELL_ITERATIONS-1 ) {
+          cellObj.set(cellObj.original);
+          if (cell < this.lines[line].cells.length - 1) {
+            loop(line, cell + 1, 0);
+          } else if (line < this.lines.length - 1) {
+            loop(line + 1, 0, 0);
+          }
+        }
+        else {
+          cellObj.set(this.getRandomChar());
+        }
+
+        ++iteration;
+        if ( iteration < MAX_CELL_ITERATIONS ) {
+            setTimeout(() => loop(line, cell, iteration), 40);
+        }
+      };
+
+      loop(0, 0);
+    }
+
     changeTransition(tmpLines: Line[]) {
       this.inProgress = true;
       let finished = 0;
       
-      // max iterations for each cell to change the current value
-      const MAX_CELL_ITERATIONS = 8;
+      // iterations for each cell to change the current value
+      const MAX_CELL_ITERATIONS = 16;
       const loop = (line : Line, cell : Cell, iteration = 0) => {
         if (iteration === 0) {
           finished++;
@@ -253,15 +274,15 @@ export class TypeShuffle {
             cell.set(tmpLines[line.position].cells[cell.position].original);
           
             cell.color = tmpLines[line.position].cells[cell.position].originalColor;
-            cell.DOM.el.style.color = cell.color;
+            cell.DOM.el.style.color = cell.color!;
         }
         else {
             cell.set(this.getRandomChar());
 
             if (Math.random() > 0.5) {
-              cell.DOM.el.style.color = tmpLines[line.position].cells[cell.position].originalColor;
+              cell.DOM.el.style.color = tmpLines[line.position].cells[cell.position].originalColor!;
             } else {
-              cell.DOM.el.style.color = cell.color;
+              cell.DOM.el.style.color = cell.color!;
             }
         }
 
@@ -273,9 +294,39 @@ export class TypeShuffle {
 
       for (const line of this.lines) {
           for (const cell of line.cells) {
-              setTimeout(() => loop(line, cell), this.randomNumber(0, 500));
+              setTimeout(() => loop(line, cell), this.randomNumber(0, 10000));
           }
       }
+    }
+
+    // to gracefully get rid of old info text before setting new text
+    cleanTransition(callback: Function) {
+      // iterations for each cell to change the current value
+      const MAX_CELL_ITERATIONS = 5;
+
+      const loop = (line : number, cell : number, iteration = 0) => {
+        const cellObj = this.lines[line].cells[cell]
+        if ( iteration === MAX_CELL_ITERATIONS-1 ) {
+          cellObj.set('&nbsp;');
+          if (cell < this.lines[line].cells.length - 1) {
+            loop(line, cell + 1, 0);
+          } else if (line < this.lines.length - 1) {
+            loop(line + 1, 0, 0);
+          } else {
+            callback(); 
+          }
+        }
+        else {
+          cellObj.set(this.getRandomChar());
+        }
+
+        ++iteration;
+        if ( iteration < MAX_CELL_ITERATIONS ) {
+            setTimeout(() => loop(line, cell, iteration), 80);
+        }
+      };
+
+      loop(0, 0);
     }
 }
 
@@ -296,125 +347,113 @@ export default function YTPlayer({playlists} :  AppProps) {
     JP = 3,
   }
 
+  // kinda sucks that ascii is state but can't set during init, has to be post-render bc of async
   const [ascii, setAscii] = useState<{ __html: string }>({ __html: "<div class='ascii'>loading...<div>" });
-  const [text, setText] = useState<TypeShuffle>();
-  const [playerProps, setPlayerProps] = useState({ playlist: PLAYLIST.HEART, track: 0 });
+  const [music, setMusic] = useState({ playlist: PLAYLIST.HEART, track: 0 });
+  const [playerState, setPlayerState] = useState(PlayerStates.PAUSED);
+  // i know this looks redundant but i need to delay the music info change so that i can have it transition out
+  const [musicInfo, setMusicInfo] = useState({ title: playlists[music.playlist].tracks[music.track].title, artist: playlists[music.playlist].tracks[music.track].artist});
 
+  const asciiTrans = useRef<TypeShuffle>();
+  const infoTrans = useRef<TypeShuffle>();
   const player = useRef<YouTubePlayer>();
 
-  // make text transitions (L to R)
-  const trackTitle = playlists[playerProps.playlist].tracks[playerProps.track].title;
-  const trackArtist = playlists[playerProps.playlist].tracks[playerProps.track].artist;
-  var backdrop = "backdrop-hue-rotate-0";
+  // not sure how much this actually helps
+  const [isTrans, startTrans] = useTransition()
 
+  // TODO blink when playing
 
-  switch (playerProps.playlist) {
-    case PLAYLIST.HEART: {
-      backdrop = "backdrop-hue-rotate-0";
-      break;
-    }
-    case PLAYLIST.HIPHOP: {
-      backdrop = "backdrop-hue-rotate-30";
-      break;
-    }
-    case PLAYLIST.HEART: {
-      backdrop = "backdrop-hue-rotate-60";
-      break;
-    }
-    case PLAYLIST.HEART: {
-      backdrop = "backdrop-hue-rotate-30";
-      break;
-    }
-  }
+  var backdrop = playlists[music.playlist].bg;
 
-  // runs once, load in html for ascii
+  // runs once on page load, load in html for ascii
   // has to be in useEffect bc initImg is async
-  // will turn into infinite render fun if outside
+  // (will turn into infinite render fun if outside)
   useEffect(() => {
     // can't directly make TypeShuffle bc it has to point to the initialized element
-    // so we gotta do this stupid style manipulation to make the loading effect work
+    // so we gotta do this stupid style manipulation so it doesn't show up too early
     async function initImg() {
       var html = document.createElement("div")
-      var res = await asciify(playlists[playerProps.playlist].tracks[playerProps.track].cover);
+      var res = await asciify(playlists[music.playlist].tracks[music.track].cover);
       html.innerHTML = res.__html;
       html.classList.add("ascii")
       html.style.display = "none"
-      startTransition(() => setAscii({__html: html.outerHTML}))
+
+      startTrans(() => {
+        setAscii({__html: html.outerHTML});
+      });
     }
 
     initImg()
+
+    // text for info already set, can directly select and split from here
+    makeNewInfo()
   }, []);
 
   // runs once after ascii set, splits html for transitions
   useEffect(() => {
     const textElement = document.querySelector('.ascii');
     if (textElement) {
-      startTransition(() => setText(new TypeShuffle(textElement as HTMLDivElement)))
+      asciiTrans.current = new TypeShuffle(textElement as HTMLDivElement);
+      (textElement as HTMLDivElement).style.display = "block"
+      asciiTrans.current.initTransition()
     }
   }, [ascii]);
-  
-  // runs once after split complete, does initial transition
-  useEffect(() => {
-    const textElement = document.querySelector('.ascii');
-    (textElement as HTMLDivElement).style.display = "block"
-    text?.initTransition() 
-  }, [text]);
 
   // all other img transitions
   useEffect(() => {
+    // done this way bc need to keep the same TypeShuffle for smooth transition
     async function changeAscii(img: string) {
       var html = document.createElement("div")
       var res = await asciify(img)
       html.innerHTML = res.__html;
       html.classList.add("ascii")
-      text?.change(html)
+      asciiTrans?.current?.change(html)
     }
     
-    changeAscii(playlists[playerProps.playlist].tracks[playerProps.track].cover)
-  }, [playerProps]);
+    changeAscii(playlists[music.playlist].tracks[music.track].cover)
 
-  // done this way bc need to keep the same TypeShuffle for smooth transition
-  // instead of fn, useState w/ name of file?
-  async function changeAscii(img: string) {
-    var html = document.createElement("div")
-    var res = await asciify(img)
-    html.innerHTML = res.__html;
-    html.classList.add("ascii")
-    text?.change(html)
+    // TODO weird behaviour with the initial page load useEffect bomb but whatever for now
+    infoTrans?.current?.cleanTransition((() => setMusicInfo({ title: playlists[music.playlist].tracks[music.track].title, artist: playlists[music.playlist].tracks[music.track].artist })))
+  }, [music]);
+
+  useEffect(() => {
+    makeNewInfo()
+  }, [musicInfo]);
+
+  function makeNewInfo() {
+    const textElement = document.querySelector('.info');
+
+    if (textElement) {
+        infoTrans.current = new TypeShuffle(textElement as HTMLDivElement)
+        infoTrans.current.initTransitionInfo() 
+    }
   }
 
   // couple options to handle the player, if this breaks down just change video from videoId prop
   // though ideally don't because it'll re-render the whole thing (it might already be though)
   // well it definitely does for playlist changing, but idk about video
 
-  var state: PlayerStates = PlayerStates.PLAYING;
-
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
-    console.log("WWWWWW")
+    console.log("PLAYER READY")
     player.current = event.target;
-    // If you have shuffled the playlist, the return value will identify the video's order within the shuffled playlist.
+    // TODO If you have shuffled the playlist, the return value will identify the video's order within the shuffled playlist.
     // shuffle on after first visit (server action?), will have to init img stuff after shuffle i guess
   };
 
   const onStateChange: YouTubeProps["onStateChange"] = async (event) => {
-    state = await event.target.getPlayerState();
-    console.log(state);
+    setPlayerState(await event.target.getPlayerState());
+    console.log("STATE: " + playerState);
 
-    if (state === YouTube.PlayerState.UNSTARTED) {
+    if (playerState === YouTube.PlayerState.UNSTARTED) {
       const idx = await event.target.getPlaylistIndex()
-      if (playerProps.track != idx) {
-        setPlayerProps({playlist: playerProps.playlist, track: idx})
+      if (music.track != idx) {
+        setMusic({playlist: music.playlist, track: idx})
       }
     }
   };
 
-  // kill
-  function changeCurList(playlist: PLAYLIST) {
-    setPlayerProps({playlist : playlist, track: 0});
-  }
-
   function playPause() {
-    if (state == PlayerStates.PLAYING) {
+    if (playerState == PlayerStates.PLAYING) {
       player.current?.pauseVideo();
     } else {
       player.current?.playVideo();
@@ -425,6 +464,10 @@ export default function YTPlayer({playlists} :  AppProps) {
     player.current?.nextVideo();
   }
 
+  function prev() {
+    player.current?.previousVideo();
+  }
+
   const opts: YouTubeProps["opts"] = {
     height: "0",
     width: "0",
@@ -433,30 +476,45 @@ export default function YTPlayer({playlists} :  AppProps) {
       controls: 0,
       disablekb: 1,
       fs: 0,
-      playlist: playlists[playerProps.playlist].tracks.map((track) => track.url).join(","),
+      playlist: playlists[music.playlist].tracks.map((track) => track.url).join(","),
       loop: 1,
     },
   };
+
+  const playlistSelect = playlists.map((playlist, idx) =>
+    <div
+    key={idx}
+    onClick={() => {
+      setMusic({playlist : idx, track: 0});;
+    }}
+    className={[
+      style.menu__item,
+      "mb-5",
+      "post",
+      "before:content-['']",
+      music.playlist == idx ? "bg-black bg-opacity-20" : "",
+    ].join(" ")}
+    // TODO add spotify link
+    // href="https://google.com"
+    // target="_blank"
+    >
+      <h3>
+        <span className={style.menu__item_name}>{playlist.title.toLowerCase()}</span>
+      </h3>
+    </div>
+  );
 
   return (
     <>
       <YouTube
         id="yt"
-        title={playlists[playerProps.playlist].title}
-        className="boooo"
-        iframeClassName="bahhh"
+        title={playlists[music.playlist].title}
         opts={opts}
         onReady={onPlayerReady}
         onStateChange={onStateChange}
       />
-      <div className="flex justify-center">
-        <div
-          // individual style-glow kills performance
-          // have to manually set width.. though not a big deal
-          className={cn("w-[410px] text-[14px]/[1.2]")}
-          dangerouslySetInnerHTML={ascii}
-        ></div>
-      </div>
+
+      {/* backdrop filter */}
       <div
         className={[
           "absolute",
@@ -466,92 +524,43 @@ export default function YTPlayer({playlists} :  AppProps) {
           "w-screen",
           backdrop,
         ].join(" ")}
-      ></div>
-      <h2 className="mt-20 ml-10">{trackTitle}</h2>
-      <h3 className="ml-10">{trackArtist}</h3>
-
-      <div className="ml-5 absolute bottom-0">
-        <h2>playlist</h2>
-        <nav>
-          <Link
-            onMouseEnter={() => {
-              changeCurList(PLAYLIST.HEART);
-            }}
-            className={[
-              style.menu__item,
-              "mb-5",
-              "post",
-              "before:content-['']",
-              playerProps.playlist == PLAYLIST.HEART ? "bg-black" : "",
-            ].join(" ")}
-            href="https://google.com"
-            target="_blank"
-          >
-            <h3>
-              <span className={style.menu__item_name}>start</span>
-            </h3>
-          </Link>
-          <Link
-            onMouseEnter={() => {
-              changeCurList(PLAYLIST.HIPHOP);
-            }}
-            className={[
-              style.menu__item,
-              "mb-5",
-              "post",
-              "before:content-['']",
-              playerProps.playlist == PLAYLIST.HIPHOP ? "bg-black" : "",
-            ].join(" ")}
-            href="https://google.com"
-            target="_blank"
-          >
-            <h3>
-              <span className={style.menu__item_name}>hip hop</span>
-            </h3>
-          </Link>
-          <Link
-            className={[
-              style.menu__item,
-              "mb-5",
-              "post",
-              "before:content-['']",
-            ].join(" ")}
-            href={`google.com`}
-          >
-            <h3>
-              <span className={style.menu__item_name}>pop</span>
-            </h3>
-          </Link>
-          <Link
-            className={[
-              style.menu__item,
-              "mb-5",
-              "post",
-              "before:content-['']",
-            ].join(" ")}
-            href={`google.com`}
-          >
-            <h3>
-              <span className={style.menu__item_name}>jp</span>
-            </h3>
-          </Link>
-        </nav>
+      >
       </div>
 
-      <div className="mr-5 absolute bottom-0 right-0">
-        <h3>
-          <span>prev</span>
-          <span onClick={playPause} className="cursor-pointer">
-            {" "}
-            {state == PlayerStates.PLAYING ? "⏵" : "booo"}{" "}
-          </span>
-          {/* <span onClick={() => startTransition(() => asciify())}>next</span> */}
-          {/* <span onClick={async () => await changeAscii()}>next</span> */}
-          <span onClick={next}>next</span>
+      <div className="flex justify-center items-center flex-col h-[100%]">
+        <div
+          // individual style-glow kills performance
+          // have to manually set width... though not a big deal
+          className={cn("w-[410px] h-[420px] text-[14px]/[1.2]")}
+          dangerouslySetInnerHTML={ascii}
+        ></div>
 
-          {/* <span onClick={async () => setAscii(await asciify("public/blonde.jpg"))}>next</span> */}
-        </h3>
+        {/* key doesn't really matter, just need one to force react to completely re-render this*/}
+        {/* else the splitting package leaves a stupid bannana attr that messes up the text change transitions */}
+        <div key={musicInfo.artist} className="info">
+          <h2 className="mt-5 mr-20">{musicInfo.title}</h2>
+          <h3 className="ml-20">{musicInfo.artist}</h3>
+        </div>
       </div>
+
+      <div className="flex justify-self-end justify-between w-[100%] absolute bottom-0 px-5 pb-3">
+          {/* playlist select */}
+          <div className="">
+            <h2>playlist</h2>
+            <nav>
+              {playlistSelect}
+            </nav>
+          </div>
+
+          <h3 className="h-fit self-end flex gap-4">
+            <span onClick={prev} className="cursor-pointer">prev</span>
+            <span onClick={playPause} className="cursor-pointer">
+              {/* TODO ADD LOADING STATE, UNCLICKABLE/GREYED */}
+              {playerState == PlayerStates.PLAYING ? "⏸" : "⏵"}
+            </span>
+            <span onClick={next} className="cursor-pointer">next</span>
+          </h3>
+        </div>
     </>
   );
 }

@@ -48,13 +48,13 @@ class Track {
 export default async function Sound() {
 
   // const intro = new Playlist("Intro", 0)
-  const intro = { title: "Intro", bg: 0, tracks: [
+  const intro = { title: "INTRO", bg: 0, tracks: [
     { title: "Self Control", artist: "Frank Ocean", url: "BME88lS6aVY", cover: "" },
     { title: "A BOY IS A GUN*", artist: "Tyler, the Creator", url: "9JQDPjpfiGw", cover: ""},
     { title: "kyu-kurarin", artist: "iyowa", url: "2b1IexhKPz4", cover: ""},
   ] }
 
-  const hiphop = { title: "Intro", bg: 0, tracks: [
+  const hiphop = { title: "HIP HOP", bg: 0, tracks: [
     { title: "kyu-kurarin", artist: "iyowa", url: "2b1IexhKPz4", cover: ""},
     { title: "Pink and White", artist: "Frank Ocean", url: "uzS3WG6__G4", cover: "" },
     { title: "A BOY IS A GUN*", artist: "Tyler, the Creator", url: "9JQDPjpfiGw", cover: ""},

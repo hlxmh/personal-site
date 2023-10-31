@@ -11,7 +11,7 @@ export default function Header() {
   const pathname = usePathname();
   console.log(pathname);
   return (
-    <header className={styles.header}>
+    <header className="fixed">
       <ul>
         <li>
           <Link href="/">_index</Link>
