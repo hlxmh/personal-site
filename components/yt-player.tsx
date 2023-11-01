@@ -448,15 +448,15 @@ export default function YTPlayer({playlists} :  AppProps) {
     // shuffle on after first visit (server action?), will have to init img stuff after shuffle i guess
   };
 
+  // yt is really cool and decided not to make an event on video change so i'm just checking every state change for new video
+  // originally was only checking UNENDED but that seems to be buggy and inconsistent
+  // honestly it may be a better option to just re-make the player every change for consistency
   const onStateChange: YouTubeProps["onStateChange"] = async (event) => {
     setPlayerState(await event.target.getPlayerState());
     console.log("STATE: " + playerState);
-
-    if (playerState === YouTube.PlayerState.UNSTARTED) {
-      const idx = await event.target.getPlaylistIndex()
-      if (music.track != idx) {
-        setMusic({playlist: music.playlist, track: idx})
-      }
+    const idx = await event.target.getPlaylistIndex()
+    if (music.track != idx) {
+      setMusic({playlist: music.playlist, track: idx})
     }
   };
 
@@ -562,8 +562,7 @@ export default function YTPlayer({playlists} :  AppProps) {
           </div>
 
           <h3 className="h-fit self-end flex gap-4">
-            {/* <span onClick={prev} className={cx("w-[410px] h-[420px] text-[14px]/[1.2]", { 'cursor-pointer': !loading})}>prev</span> */}
-            <span onClick={prev} className={cx("cursor-pointer")}>prev</span>
+            <span onClick={prev} className={cx({ 'cursor-pointer': (playerState != PlayerStates.UNSTARTED), 'opacity-20': (playerState != PlayerStates.UNSTARTED)})}>prev</span>
             <span onClick={playPause} className="cursor-pointer">
               {/* TODO ADD LOADING STATE, UNCLICKABLE/GREYED */}
               {playerState == PlayerStates.PLAYING ? "⏸" : "⏵"}
