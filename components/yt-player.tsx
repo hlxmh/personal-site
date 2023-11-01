@@ -4,13 +4,13 @@
 import YouTube, { YouTubePlayer, YouTubeProps } from "react-youtube";
 import Link from "next/link";
 import style from "styles/txt.module.css";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import PlayerStates from "youtube-player/dist/constants/PlayerStates";
 import "splitting/dist/splitting.css";
 import "splitting/dist/splitting-cells.css";
 import Splitting from "splitting";
 import asciify from "lib/asciify"
-import { cn } from "lib/utils"
+import { cx } from "lib/utils"
 
 /**
  * Class representing one line
@@ -76,6 +76,8 @@ class Cell {
         this.DOM.el.innerHTML = this.state;
     }
 }
+
+// TODO consolidate these functions so we don't have 500 lines
 
 /**
  * Class representing the TypeShuffle object
@@ -193,7 +195,7 @@ export class TypeShuffle {
       let finished = 0;
 
       // iterations for each cell to change the current value
-      const MAX_CELL_ITERATIONS = 40;
+      const MAX_CELL_ITERATIONS = 30;
 
       const loop = (line : Line, cell : Cell, iteration = 0) => {
         if ( iteration === MAX_CELL_ITERATIONS-1 ) {
@@ -221,7 +223,7 @@ export class TypeShuffle {
 
       for (const line of this.lines) {
           for (const cell of line.cells) {
-              setTimeout(() => loop(line, cell), this.randomNumber(0, 20000));
+              setTimeout(() => loop(line, cell), this.randomNumber(500, 20000));
           }
       }
     }
@@ -232,7 +234,7 @@ export class TypeShuffle {
 
       const loop = (line : number, cell : number, iteration = 0) => {
         const cellObj = this.lines[line].cells[cell]
-        if ( iteration === MAX_CELL_ITERATIONS-1 ) {
+        if ( iteration >= MAX_CELL_ITERATIONS-1 ) {
           cellObj.set(cellObj.original);
           if (cell < this.lines[line].cells.length - 1) {
             loop(line, cell + 1, 0);
@@ -246,7 +248,7 @@ export class TypeShuffle {
 
         ++iteration;
         if ( iteration < MAX_CELL_ITERATIONS ) {
-            setTimeout(() => loop(line, cell, iteration), 40);
+            setTimeout(() => loop(line, cell, iteration + this.randomNumber(0, 1)), 40);
         }
       };
 
@@ -258,7 +260,7 @@ export class TypeShuffle {
       let finished = 0;
       
       // iterations for each cell to change the current value
-      const MAX_CELL_ITERATIONS = 16;
+      const MAX_CELL_ITERATIONS = 10;
       const loop = (line : Line, cell : Cell, iteration = 0) => {
         if (iteration === 0) {
           finished++;
@@ -294,7 +296,7 @@ export class TypeShuffle {
 
       for (const line of this.lines) {
           for (const cell of line.cells) {
-              setTimeout(() => loop(line, cell), this.randomNumber(0, 10000));
+              setTimeout(() => loop(line, cell), this.randomNumber(500, 15000));
           }
       }
     }
@@ -322,7 +324,7 @@ export class TypeShuffle {
 
         ++iteration;
         if ( iteration < MAX_CELL_ITERATIONS ) {
-            setTimeout(() => loop(line, cell, iteration), 80);
+            setTimeout(() => loop(line, cell, iteration), 40);
         }
       };
 
@@ -356,6 +358,7 @@ export default function YTPlayer({playlists} :  AppProps) {
 
   const asciiTrans = useRef<TypeShuffle>();
   const infoTrans = useRef<TypeShuffle>();
+  const oldMusic = useRef({ playlist: PLAYLIST.HEART, track: 0 })
   const player = useRef<YouTubePlayer>();
 
   // not sure how much this actually helps
@@ -363,20 +366,19 @@ export default function YTPlayer({playlists} :  AppProps) {
 
   // TODO blink when playing
 
-  var backdrop = playlists[music.playlist].bg;
+  const backdrop = playlists[music.playlist].bg;
 
   // runs once on page load, load in html for ascii
   // has to be in useEffect bc initImg is async
   // (will turn into infinite render fun if outside)
   useEffect(() => {
+    console.log("A")
     // can't directly make TypeShuffle bc it has to point to the initialized element
-    // so we gotta do this stupid style manipulation so it doesn't show up too early
     async function initImg() {
       var html = document.createElement("div")
       var res = await asciify(playlists[music.playlist].tracks[music.track].cover);
       html.innerHTML = res.__html;
       html.classList.add("ascii")
-      html.style.display = "none"
 
       startTrans(() => {
         setAscii({__html: html.outerHTML});
@@ -390,17 +392,19 @@ export default function YTPlayer({playlists} :  AppProps) {
   }, []);
 
   // runs once after ascii set, splits html for transitions
-  useEffect(() => {
+  useLayoutEffect(() => {
+    console.log("B")
     const textElement = document.querySelector('.ascii');
+    console.log(textElement)
     if (textElement) {
       asciiTrans.current = new TypeShuffle(textElement as HTMLDivElement);
-      (textElement as HTMLDivElement).style.display = "block"
       asciiTrans.current.initTransition()
     }
   }, [ascii]);
 
   // all other img transitions
   useEffect(() => {
+    console.log("C")
     // done this way bc need to keep the same TypeShuffle for smooth transition
     async function changeAscii(img: string) {
       var html = document.createElement("div")
@@ -409,14 +413,18 @@ export default function YTPlayer({playlists} :  AppProps) {
       html.classList.add("ascii")
       asciiTrans?.current?.change(html)
     }
-    
-    changeAscii(playlists[music.playlist].tracks[music.track].cover)
 
-    // TODO weird behaviour with the initial page load useEffect bomb but whatever for now
-    infoTrans?.current?.cleanTransition((() => setMusicInfo({ title: playlists[music.playlist].tracks[music.track].title, artist: playlists[music.playlist].tracks[music.track].artist })))
+    // prevent spam, and also fixes bugs during init useEffect bombs
+    if (oldMusic.current.playlist !== music.playlist || oldMusic.current.track !== music.track) {
+      changeAscii(playlists[music.playlist].tracks[music.track].cover)
+      infoTrans?.current?.cleanTransition((() => setMusicInfo({ title: playlists[music.playlist].tracks[music.track].title, artist: playlists[music.playlist].tracks[music.track].artist })))
+      
+      oldMusic.current = music
+    }
   }, [music]);
 
   useEffect(() => {
+    console.log("D")
     makeNewInfo()
   }, [musicInfo]);
 
@@ -515,7 +523,7 @@ export default function YTPlayer({playlists} :  AppProps) {
       />
 
       {/* backdrop filter */}
-      <div
+      {/* <div
         className={[
           "absolute",
           "top-0",
@@ -525,13 +533,14 @@ export default function YTPlayer({playlists} :  AppProps) {
           backdrop,
         ].join(" ")}
       >
-      </div>
+      </div> */}
 
       <div className="flex justify-center items-center flex-col h-[100%]">
         <div
           // individual style-glow kills performance
-          // have to manually set width... though not a big deal
-          className={cn("w-[410px] h-[420px] text-[14px]/[1.2]")}
+          // have to manually set width to ensure correct image ratio
+          // manual height is to ensure no layout shift from loading in image
+          className={cx("w-[410px] h-[420px] text-[14px]/[1.2]")}
           dangerouslySetInnerHTML={ascii}
         ></div>
 
@@ -553,7 +562,8 @@ export default function YTPlayer({playlists} :  AppProps) {
           </div>
 
           <h3 className="h-fit self-end flex gap-4">
-            <span onClick={prev} className="cursor-pointer">prev</span>
+            {/* <span onClick={prev} className={cx("w-[410px] h-[420px] text-[14px]/[1.2]", { 'cursor-pointer': !loading})}>prev</span> */}
+            <span onClick={prev} className={cx("cursor-pointer")}>prev</span>
             <span onClick={playPause} className="cursor-pointer">
               {/* TODO ADD LOADING STATE, UNCLICKABLE/GREYED */}
               {playerState == PlayerStates.PLAYING ? "⏸" : "⏵"}
