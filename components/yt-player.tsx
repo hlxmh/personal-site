@@ -340,6 +340,8 @@ type AppProps = {
   }[]
 }
 
+// TODO fix the double song change title, i think we need to add condition for ifRendering on clean/write
+
 export default function YTPlayer({playlists} :  AppProps) {
   // manually synced w/ playlists prop
   enum PLAYLIST {
@@ -353,7 +355,10 @@ export default function YTPlayer({playlists} :  AppProps) {
   const [ascii, setAscii] = useState<{ __html: string }>({ __html: "<div class='ascii'>loading...<div>" });
   const [music, setMusic] = useState({ playlist: PLAYLIST.HEART, track: 0 });
   const [playerState, setPlayerState] = useState(PlayerStates.PAUSED);
-  // i know this looks redundant but i need to delay the music info change so that i can have it transition out
+  // i know this looks redundant but yt player states don't give enough info
+  // loading when new video (UNSTARTED), done once playing (PLAYING)
+  const [loadingState, setLoadingState] = useState(true);
+  // i know this also looks redundant but i need to delay the music info change so that i can have it transition out
   const [musicInfo, setMusicInfo] = useState({ title: playlists[music.playlist].tracks[music.track].title, artist: playlists[music.playlist].tracks[music.track].artist});
 
   const asciiTrans = useRef<TypeShuffle>();
@@ -448,15 +453,19 @@ export default function YTPlayer({playlists} :  AppProps) {
     // shuffle on after first visit (server action?), will have to init img stuff after shuffle i guess
   };
 
-  // yt is really cool and decided not to make an event on video change so i'm just checking every state change for new video
-  // originally was only checking UNENDED but that seems to be buggy and inconsistent
-  // honestly it may be a better option to just re-make the player every change for consistency
+  // yt is really cool and decided not to make an event on video change
   const onStateChange: YouTubeProps["onStateChange"] = async (event) => {
-    setPlayerState(await event.target.getPlayerState());
-    console.log("STATE: " + playerState);
+    let state = await event.target.getPlayerState();
+    setPlayerState(state);
+    console.log("STATE: " + state);
     const idx = await event.target.getPlaylistIndex()
-    if (music.track != idx) {
-      setMusic({playlist: music.playlist, track: idx})
+    if (state == PlayerStates.UNSTARTED) {
+      if (music.track != idx) {
+        setMusic({playlist: music.playlist, track: idx})
+        setLoadingState(true);
+      }
+    } else if (state === PlayerStates.PLAYING && loadingState) {
+      setLoadingState(false);
     }
   };
 
@@ -560,14 +569,14 @@ export default function YTPlayer({playlists} :  AppProps) {
               {playlistSelect}
             </nav>
           </div>
-
+          
+          {/* TODO ADD LOADING ANIMATION?? */}
           <h3 className="h-fit self-end flex gap-4">
-            <span onClick={prev} className={cx({ 'cursor-pointer': (playerState != PlayerStates.UNSTARTED), 'opacity-20': (playerState != PlayerStates.UNSTARTED)})}>prev</span>
-            <span onClick={playPause} className="cursor-pointer">
-              {/* TODO ADD LOADING STATE, UNCLICKABLE/GREYED */}
+          <span onClick={prev} className={cx('cursor-pointer', {'opacity-40 pointer-events-none': loadingState})}>prev</span>
+            <span onClick={playPause} className={cx('cursor-pointer', {'opacity-40 pointer-events-none': loadingState})}>
               {playerState == PlayerStates.PLAYING ? "⏸" : "⏵"}
             </span>
-            <span onClick={next} className="cursor-pointer">next</span>
+            <span onClick={next} className={cx('cursor-pointer', {'opacity-40 pointer-events-none': loadingState})}>next</span>
           </h3>
         </div>
     </>
