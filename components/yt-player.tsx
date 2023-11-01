@@ -97,6 +97,9 @@ export class TypeShuffle {
     totalChars = 0;
     inProgress = false;
     transQueue = [] as Line[][];
+
+    // to handle song spam on info text
+    changeMusic = Function()
   
 	/**
 	 * Constructor.
@@ -303,6 +306,10 @@ export class TypeShuffle {
 
     // to gracefully get rid of old info text before setting new text
     cleanTransition(callback: Function) {
+      this.changeMusic = callback;
+      if (this.inProgress) return;
+      this.inProgress = true;
+
       // iterations for each cell to change the current value
       const MAX_CELL_ITERATIONS = 5;
 
@@ -315,7 +322,8 @@ export class TypeShuffle {
           } else if (line < this.lines.length - 1) {
             loop(line + 1, 0, 0);
           } else {
-            callback(); 
+            this.inProgress = false;
+            this.changeMusic(); 
           }
         }
         else {
@@ -339,8 +347,6 @@ type AppProps = {
     tracks: { title: string, artist: string, url: string, cover: string }[]
   }[]
 }
-
-// TODO fix the double song change title, i think we need to add condition for ifRendering on clean/write
 
 export default function YTPlayer({playlists} :  AppProps) {
   // manually synced w/ playlists prop
