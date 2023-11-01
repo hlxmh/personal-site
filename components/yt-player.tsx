@@ -561,7 +561,8 @@ export default function YTPlayer({playlists} :  AppProps) {
 
         {/* key doesn't really matter, just need one to force react to completely re-render this*/}
         {/* else the splitting package leaves a stupid bannana attr that messes up the text change transitions */}
-        <div key={musicInfo.artist} className="info">
+        {/* TODO make the blinking not suck */}
+        <div key={musicInfo.artist} className={cx('info', {'animate-slow_blink': (!loadingState && playerState == PlayerStates.PLAYING)})}>
           <h2 className="mt-5 mr-20">{musicInfo.title}</h2>
           <h3 className="ml-20">{musicInfo.artist}</h3>
         </div>
@@ -576,7 +577,6 @@ export default function YTPlayer({playlists} :  AppProps) {
             </nav>
           </div>
           
-          {/* TODO ADD LOADING ANIMATION?? */}
           <h3 className="h-fit self-end flex gap-4">
           <span onClick={prev} className={cx('cursor-pointer', {'opacity-40 pointer-events-none': loadingState})}>prev</span>
             <span onClick={playPause} className={cx('cursor-pointer', {'opacity-40 pointer-events-none': loadingState})}>
