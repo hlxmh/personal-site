@@ -93,12 +93,9 @@ export class TypeShuffle {
     // array of letters and symbols
     lettersAndSymbols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '!', '@', '#', '$', '&', '*', '(', ')', '-', '_', '+', '=', '/', '[', ']', '{', '}', ';', ':', '<', '>', ',', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     
-    // to prevent multi-transition bugs
-    totalChars = 0;
+    // to prevent concurrent transition bugs
     inProgress = false;
-    transQueue = [] as Line[][];
-
-    // to handle song spam on info text
+    key = 0;
     changeMusic = Function()
   
 	/**
@@ -136,12 +133,11 @@ export class TypeShuffle {
             }
             line.cells = cells;
             this.lines.push(line);
-            this.totalChars += charCount;
         }
         // TODO
         // window.addEventListener('resize', () => this.resize());
 	}
-    change(DOM_el : HTMLDivElement) {
+    change(DOM_el : HTMLDivElement, key: number) {
       // Apply Splitting (two times to have lines, words and chars)
       const tmpLines : Line[] = [];
 
@@ -174,11 +170,8 @@ export class TypeShuffle {
           tmpLines.push(line);
       }
 
-      if (this.inProgress) {
-        this.transQueue.push(tmpLines)
-      } else {
-        this.changeTransition(tmpLines);
-      }
+      this.key = key;
+      this.changeTransition(tmpLines, key);
     }
 
     /**
@@ -194,24 +187,17 @@ export class TypeShuffle {
     }
 
     initTransition() {
-      this.inProgress = true;
-      let finished = 0;
-
       // iterations for each cell to change the current value
-      const MAX_CELL_ITERATIONS = 30;
+      var MAX_CELL_ITERATIONS = 30;
 
       const loop = (line : Line, cell : Cell, iteration = 0) => {
-        if ( iteration === MAX_CELL_ITERATIONS-1 ) {
-            finished++;
-            if (finished === this.totalChars) {
-              // in progress refers to finishing the whole transition
-              // could potentially make a bit smoother by setting inProgress at MAX_CELL_ITERATIONS-9
-              this.inProgress = false
-              if (this.transQueue.length > 0) {
-                this.changeTransition(this.transQueue.shift()!);
-              }
-            }
-
+        if (this.key > 0) {
+          MAX_CELL_ITERATIONS = 8; // has to be less than changeTransition
+          if (iteration === 0) {
+            return
+          }
+        }
+        if ( iteration >= MAX_CELL_ITERATIONS-1 ) {
             cell.set(cell.original);
         }
         else {
@@ -225,9 +211,9 @@ export class TypeShuffle {
       };
 
       for (const line of this.lines) {
-          for (const cell of line.cells) {
-              setTimeout(() => loop(line, cell), this.randomNumber(500, 20000));
-          }
+        for (const cell of line.cells) {
+            setTimeout(() => loop(line, cell), this.randomNumber(500, 20000));
+        }
       }
     }
 
@@ -258,24 +244,18 @@ export class TypeShuffle {
       loop(0, 0);
     }
 
-    changeTransition(tmpLines: Line[]) {
-      this.inProgress = true;
-      let finished = 0;
-      
+    changeTransition(tmpLines: Line[], key: number) {
       // iterations for each cell to change the current value
-      const MAX_CELL_ITERATIONS = 10;
+      var MAX_CELL_ITERATIONS = 10;
       const loop = (line : Line, cell : Cell, iteration = 0) => {
-        if (iteration === 0) {
-          finished++;
-          if (finished === this.totalChars) {
-            // in progress refers to starting the loop on every cell, not finishing the whole transition
-            this.inProgress = false
-            if (this.transQueue.length > 0) {
-              this.changeTransition(this.transQueue.shift()!);
-            }
+        if (this.key > key) {
+          MAX_CELL_ITERATIONS = 8; // has to be less than default
+          if (iteration === 0) {
+            return
           }
         }
-        if ( iteration === MAX_CELL_ITERATIONS-1 ) {
+
+        if ( iteration >= MAX_CELL_ITERATIONS-1 ) {
             cell.set(tmpLines[line.position].cells[cell.position].original);
           
             cell.color = tmpLines[line.position].cells[cell.position].originalColor;
@@ -357,6 +337,9 @@ export default function YTPlayer({playlists} :  AppProps) {
     JP = 3,
   }
 
+  // TODO i think there's still a visual bug with the info text
+  // popping up early before transition but have to check
+
   // kinda sucks that ascii is state but can't set during init, has to be post-render bc of async
   const [ascii, setAscii] = useState<{ __html: string }>({ __html: "<div class='ascii'>loading...<div>" });
   const [music, setMusic] = useState({ playlist: PLAYLIST.HEART, track: 0 });
@@ -371,11 +354,10 @@ export default function YTPlayer({playlists} :  AppProps) {
   const infoTrans = useRef<TypeShuffle>();
   const oldMusic = useRef({ playlist: PLAYLIST.HEART, track: 0 })
   const player = useRef<YouTubePlayer>();
+  const asciiKey = useRef(1);
 
   // not sure how much this actually helps
   const [isTrans, startTrans] = useTransition()
-
-  // TODO blink when playing
 
   const backdrop = playlists[music.playlist].bg;
 
@@ -422,7 +404,8 @@ export default function YTPlayer({playlists} :  AppProps) {
       var res = await asciify(img)
       html.innerHTML = res.__html;
       html.classList.add("ascii")
-      asciiTrans?.current?.change(html)
+      asciiTrans?.current?.change(html, asciiKey.current)
+      asciiKey.current++;
     }
 
     // prevent spam, and also fixes bugs during init useEffect bombs
