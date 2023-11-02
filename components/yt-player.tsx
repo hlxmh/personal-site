@@ -339,6 +339,7 @@ export default function YTPlayer({playlists} :  AppProps) {
 
   // TODO i think there's still a visual bug with the info text
   // popping up early before transition but have to check
+  // happens on D callback
 
   // kinda sucks that ascii is state but can't set during init, has to be post-render bc of async
   const [ascii, setAscii] = useState<{ __html: string }>({ __html: "<div class='ascii'>loading...<div>" });
