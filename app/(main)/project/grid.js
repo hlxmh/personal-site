@@ -11,7 +11,6 @@ export class Grid extends EventEmitter {
         this.gridItems = [];
         this.DOM.items = [...this.DOM.el.querySelectorAll('.grid__item')];
         this.DOM.items.forEach(item => {
-            console.log("puuuuuus")
             this.gridItems.push(new GridItem(item));
         });
         
@@ -20,7 +19,6 @@ export class Grid extends EventEmitter {
     }
     // Initial animation to scale up and fade in the items
     showItems() {
-        console.log('heee')
         gsap
         .timeline()
         .addLabel('start', 0)
@@ -42,7 +40,7 @@ export class Grid extends EventEmitter {
         for(const item of this.gridItems) {
             item.DOM.image.addEventListener('mouseenter', () => {
                 item.onMouseEnter();
-                this.emit('mouseEnterItem', item.title);
+                this.emit('mouseEnterItem', item.title, item.desc);
             });
             
             item.DOM.image.addEventListener('mouseleave', () => {

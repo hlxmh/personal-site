@@ -518,7 +518,7 @@ body {
 		stroke-width: var(--cursor-stroke-width);
 	}
 
-	.cursor__text {
+	.cursor_title {
 		position: absolute;
 		top: 1.875rem;
 		left: 80px;

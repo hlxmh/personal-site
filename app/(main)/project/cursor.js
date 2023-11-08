@@ -10,51 +10,44 @@ export class Cursor {
 		// the main text element
 		el : document.createElement('div'),
         text: document.createElement('span'),
+        desc: document.createElement('span'),
 	};
     constructor(el) {
-        this.DOM = {el: el, text: el.querySelector('.cursor__text')};
+        this.DOM = {el: el, text: el.querySelector('.cursor_title'), desc: el.querySelector('.cursor_desc')};
 
-        this.DOM.el.style.opacity = 0;
+        this.DOM.el.style.opacity = 1;
         
         this.renderedStyles = {
-            tx: {previous: 0, current: 0, amt: 0.2},
-            ty: {previous: 0, current: 0, amt: 0.2},
             txText: {previous: 0, current: 0, amt: 0.1},
             tyText: {previous: 0, current: 0, amt: 0.1},
-            scale: {previous: 1, current: 1, amt: 0.15}
         };
 
+        // runs once, to init mouse pos and animation loop
         this.onMouseMoveEv = () => {
-            this.renderedStyles.tx.previous = this.renderedStyles.tx.current 
-                                            = this.renderedStyles.txText.previous 
+            this.renderedStyles.txText.previous 
                                             = this.renderedStyles.txText.current 
                                             = mouse.x
-            this.renderedStyles.ty.previous = this.renderedStyles.ty.current 
-                                            = this.renderedStyles.tyText.previous 
+            this.renderedStyles.tyText.previous 
                                             = this.renderedStyles.tyText.current 
                                             = mouse.y
-
-            gsap.to(this.DOM.el, {duration: 0.9, ease: 'Power3.easeOut', opacity: 1});
             requestAnimationFrame(() => this.render());
             window.removeEventListener('mousemove', this.onMouseMoveEv);
         };
         window.addEventListener('mousemove', this.onMouseMoveEv);
     }
-    enter() {
-        this.renderedStyles['scale'].current = 1.5;
-    }
-    leave() {
-        this.renderedStyles['scale'].current = 1;
-    }
     render() {
-        this.renderedStyles['tx'].current = this.renderedStyles['txText'].current = mouse.x;
-        this.renderedStyles['ty'].current = this.renderedStyles['tyText'].current = mouse.y;
+        // update pos
+        this.renderedStyles['txText'].current = mouse.x - 50;
+        this.renderedStyles['tyText'].current = mouse.y - 30;
 
+        // update animation val
         for (const key in this.renderedStyles ) {
             this.renderedStyles[key].previous = lerp(this.renderedStyles[key].previous, this.renderedStyles[key].current, this.renderedStyles[key].amt);
         }
-                    
+
+        // update animation
         this.DOM.text.style.transform = `translateX(${(this.renderedStyles['txText'].previous)}px) translateY(${this.renderedStyles['tyText'].previous}px)`;
+        this.DOM.desc.style.transform = `translateX(${(this.renderedStyles['txText'].previous)}px) translateY(${this.renderedStyles['tyText'].previous + 30}px)`;
         requestAnimationFrame(() => this.render());
     }
 }

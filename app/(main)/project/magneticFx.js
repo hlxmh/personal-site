@@ -32,12 +32,15 @@ export class MagneticFx {
     initEvents() {
         window.addEventListener('resize', () => this.calculateSizePosition());
 
+        // BUG this fires twice...????
+        // and has a different bounding box for each fire??
         this.DOM.el.addEventListener('mouseenter', () => {
-            this.hoverTimeout = setTimeout(() => {
+            // incredibly small timeout to bypass fast movements
+            this.hoverTimeout = setTimeout(() => { 
                 // set to last translated values after hovering out
                 const {x, y} = getTranslateValues(this.DOM.el);
-                this.renderedStyles['tx'].previous = x;
-                this.renderedStyles['ty'].previous = y;
+                this.renderedStyles.tx.previous = x;
+                this.renderedStyles.ty.previous = y;
                 // start the render loop animation (rAF)
                 this.loopRender();
             }, 10);
@@ -70,20 +73,20 @@ export class MagneticFx {
             x: this.scrollVal.x - window.scrollX,
             y: this.scrollVal.y - window.scrollY
         };
-        
+
         // new values for the translations
-        this.renderedStyles['tx'].current = (mousepos.x - (scrollDiff.x + this.rect.left + this.rect.width/2))*.3;
-        this.renderedStyles['ty'].current = (mousepos.y - (scrollDiff.y + this.rect.top + this.rect.height/2))*.3;
+        this.renderedStyles.tx.current = (mousepos.x - (scrollDiff.x + this.rect.left + this.rect.width/2))*.3;
+        this.renderedStyles.ty.current = (mousepos.y - (scrollDiff.y + this.rect.top + this.rect.height/2))*.3;
         
         for (const key in this.renderedStyles ) {
             this.renderedStyles[key].previous = lerp(this.renderedStyles[key].previous, this.renderedStyles[key].current, this.renderedStyles[key].amt);
         }
         
         gsap.set(this.DOM.el, {
-            x: this.renderedStyles['tx'].previous,
-            y: this.renderedStyles['ty'].previous
+            x: this.renderedStyles.tx.previous,
+            y: this.renderedStyles.ty.previous
         })
 
-        this.loopRender();
+        this.loopRender()
     }
 }

@@ -1,10 +1,10 @@
-/* html, 
+html, 
 body, 
 main {
 	height: 100%;
 	width: 100%;
 	position: relative;
-} */
+}
 
 body {
 	margin: 0;
@@ -146,10 +146,12 @@ body {
 	pointer-events: none;
 }
 
+/* TODO different sizes for diff size projects */
+/* and maybe random pos */
 .grid__item {
 	position: relative;
 	will-change: transform;
-	grid-area: var(--grid-row) / var(--grid-column) / span 12 / span 5;
+	grid-area: var(--grid-row) / var(--grid-column) / span 12 / span 10;
 }
 
 .grid__item-img {
@@ -169,7 +171,7 @@ body {
 /* Shorthand grid-area: grid-row-start / grid-column-start / grid-row-end / grid-column-end */
 
 .pos-1 {
-	--grid-row: 10;
+	--grid-row: 30;
 	--grid-column: 1;
 }
 
@@ -300,6 +302,7 @@ body {
 		padding: 1rem 1.5rem;
 		grid-gap: 6vw;
 		pointer-events: none;
+        /* im honestly lost on the 1fr here */
 		grid-template-columns: auto 1fr auto;
 		grid-template-rows: auto auto auto;
 		grid-template-areas: 'title links ...'
@@ -348,7 +351,7 @@ body {
 		z-index: 9999;
 	}
 
-	.cursor__text {
+	.cursor_title {
 		position: absolute;
 		top: 1.875rem;
 		left: 80px;
@@ -356,5 +359,14 @@ body {
 		text-transform: uppercase;
 		font-weight: 500;
 		fill: var(--cursor-text);
+	}
+
+	.cursor_desc {
+		position: absolute;
+		top: 1.875rem;
+		left: 80px;
+		font-size: 0.857rem;
+		text-transform: uppercase;
+		font-weight: 500;
 	}
 }
