@@ -4,18 +4,19 @@ import { MagneticFx }  from './magneticFx';
 
 // Calculate the viewport size
 let winsize = calcWinsize();
+// i actually don't think this is necessary since the relative pos of itemms should be the same
 window.addEventListener('resize', () => winsize = calcWinsize());
 
 // Track the mouse position
 let mousepos = {x: winsize.width/2, y: winsize.height/2};
-window.addEventListener('mousemove', ev => mousepos = getMousePos(ev));
+window.addEventListener('mousemove', ev => {mousepos = getMousePos(ev); isMouseIn = true});
+
+let isMouseIn = false;
+window.addEventListener('mouseout', () => isMouseIn = false);
 
 export class GridItem {
     constructor(el) {
         this.DOM = {el: el};
-        // the inner image
-        this.DOM.image = this.DOM.el.querySelector('.grid__item-img');
-        // the title that will appear next to the mouse cursor when hovering
         this.title = this.DOM.el.dataset.title;
         this.desc = this.DOM.el.dataset.desc;
         // amounts to move in each axis when moving the cursor
@@ -28,9 +29,11 @@ export class GridItem {
         this.ybound = getRandomNumber(40,65);
         this.rxbound = 5;
         this.rybound = 8;
+        // stops movement animation if true
+        this.isMagnetic = false;
         // magnetic effect on the image:
         // when hovering on the image, the image will follow the mouse movement
-        this.magneticFx = new MagneticFx(this.DOM.image);
+        this.magneticFx = new MagneticFx(this.DOM.el);
         // initial style/position
         this.layout();
         // start the rAF render function (translate and rotate the item as we move the mouse)
@@ -59,7 +62,7 @@ export class GridItem {
                         map(rect.left+rect.width/2, 0, winsize.width/2,  -600, -200) :
                         map(rect.left+rect.width/2, winsize.width/2, winsize.width, -200, -600);
 
-        // the rotates will also be set in move so its a bit excessive
+        // don't need to set rotate here, just need to set rY, rX
         gsap.set(this.DOM.el, {
             rotationX: this.rX,
             rotationY: this.rY,
@@ -68,40 +71,40 @@ export class GridItem {
     }
     onMouseEnter() {
         this.hoverTimeout = setTimeout(() => {
-            //this.stopTransformAnimation();
-
             if( this.timelineHoverOut ) this.timelineHoverOut.kill();
             
             this.timelineHoverIn = gsap.timeline()
             .addLabel('start', 0)
-            .to(this.DOM.image, {
+            .to(this.DOM.el, {
                 duration: 0.8,
                 ease: 'expo',
                 scale: 1.1
             }, 'start')
 
         }, 10);
+        this.isMagnetic = true
     }
     onMouseLeave() {
-        //this.loopTransformAnimation();
-
         if ( this.hoverTimeout ) {
             clearTimeout(this.hoverTimeout);
         }
         
         if( this.timelineHoverIn ) this.timelineHoverIn.kill();
+
+        this.translationVals.x = gsap.getProperty(this.DOM.el, "x");
+        this.translationVals.y = gsap.getProperty(this.DOM.el, "y");
         
         this.timelineHoverOut = gsap.timeline()
-        .to(this.DOM.image, {
+        .to(this.DOM.el, {
             duration: 1,
             ease: 'power4',
-            x: 0,
-            y: 0,
             scale: 1
         });
+
+        this.isMagnetic = false
     }
     loopTransformAnimation() {
-        // check if needed
+        // unnecessary but safe
         if ( !this.requestId ) {
             this.requestId = requestAnimationFrame(() => this.move());
         }
@@ -122,18 +125,31 @@ export class GridItem {
         // Calculate the amount to move.
         // Using linear interpolation to smooth things out. 
         // Translation values will be in the range of [-bound, bound] for a cursor movement from 0 to the window's width/height
-        this.translationVals.x = lerp(this.translationVals.x, map(mousepos.x, 0, winsize.width, this.xbound, -this.xbound), 0.04);
-        this.translationVals.y = lerp(this.translationVals.y, map(mousepos.y, 0, winsize.height, this.ybound, -this.ybound), 0.04);
-        // same for the rotations
-        this.rotationVals.x = lerp(this.rotationVals.x, map(mousepos.y, 0, winsize.height, this.rxbound, -this.rxbound), 0.04)
-        this.rotationVals.y = lerp(this.rotationVals.y, map(mousepos.x, 0, winsize.width, this.rybound, -this.rybound), 0.04);
+        if (isMouseIn) {
+            this.translationVals.x = lerp(this.translationVals.x, map(mousepos.x, 0, winsize.width, this.xbound, -this.xbound), 0.04);
+            this.translationVals.y = lerp(this.translationVals.y, map(mousepos.y, 0, winsize.height, this.ybound, -this.ybound), 0.04);
+            this.rotationVals.x = lerp(this.rotationVals.x, map(mousepos.y, 0, winsize.height, this.rxbound, -this.rxbound), 0.04)
+            this.rotationVals.y = lerp(this.rotationVals.y, map(mousepos.x, 0, winsize.width, this.rybound, -this.rybound), 0.04);
+        } else { // reset to default
+            this.translationVals.x = lerp(this.translationVals.x, map(winsize.width/2, 0, winsize.width, this.xbound, -this.xbound), 0.02);
+            this.translationVals.y = lerp(this.translationVals.y, map(winsize.height/2, 0, winsize.height, this.ybound, -this.ybound), 0.02);
+            this.rotationVals.x = lerp(this.rotationVals.x, map(winsize.height/2, 0, winsize.height, this.rxbound, -this.rxbound), 0.02)
+            this.rotationVals.y = lerp(this.rotationVals.y, map(winsize.width/2, 0, winsize.width, this.rybound, -this.rybound), 0.02);
+        }
 
-        gsap.set(this.DOM.el, {
-            x: this.translationVals.x, 
-            y: this.translationVals.y,
-            rotationX: this.rX + this.rotationVals.x,
-            rotationY: this.rY + this.rotationVals.y,
-        });
+        if (this.isMagnetic) {
+            gsap.set(this.DOM.el, {
+                rotationX: this.rX + this.rotationVals.x,
+                rotationY: this.rY + this.rotationVals.y,
+            });   
+        } else {
+            gsap.set(this.DOM.el, {
+                x: this.translationVals.x, 
+                y: this.translationVals.y,
+                rotationX: this.rX + this.rotationVals.x,
+                rotationY: this.rY + this.rotationVals.y,
+            });
+        }
 
         this.loopTransformAnimation();
     }

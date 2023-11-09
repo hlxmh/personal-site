@@ -38,23 +38,15 @@ export class Grid extends EventEmitter {
     }
     initEvents() {
         for(const item of this.gridItems) {
-            item.DOM.image.addEventListener('mouseenter', () => {
+            item.DOM.el.addEventListener('mouseenter', () => {
                 item.onMouseEnter();
                 this.emit('mouseEnterItem', item.title, item.desc);
             });
             
-            item.DOM.image.addEventListener('mouseleave', () => {
+            item.DOM.el.addEventListener('mouseleave', () => {
                 item.onMouseLeave();
                 this.emit('mouseLeaveItem');
             });
-            
-            item.DOM.el.addEventListener('click', ev => {
-                ev.preventDefault();
-                this.showContent(item);
-            });
         }
-    }
-    showContent(item) {
-        console.log(item)
     }
 }

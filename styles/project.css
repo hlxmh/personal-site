@@ -149,13 +149,12 @@ body {
 /* TODO different sizes for diff size projects */
 /* and maybe random pos */
 .grid__item {
-	position: relative;
+	/* position: relative; */
 	will-change: transform;
 	grid-area: var(--grid-row) / var(--grid-column) / span 12 / span 10;
 }
 
 .grid__item-img {
-	position: relative;
 	width: 100%;
 	height: 100%;
 	background-size: cover;
@@ -250,6 +249,7 @@ body {
 	--grid-column: 36;
 }
 
+/* mess with this, default no style looks cool too */
 .content__title {
 	font-size: 12vw;
 	margin: 0;
@@ -259,22 +259,6 @@ body {
 	text-transform: uppercase;
 	pointer-events: none;
 }
-
-.content__title-line {
-	display: block;
-	position: relative;
-	overflow: hidden;
-	line-height: 1;
-}
-
-.content__title-line--1 {
-	margin-left: -5vw;
-}
-
-.content__title-line--2 {
-	margin-right: -5vw;
-}
-
 
 .cursor {
 	display: none;
@@ -368,5 +352,6 @@ body {
 		font-size: 0.857rem;
 		text-transform: uppercase;
 		font-weight: 500;
+		width: 50%
 	}
 }
