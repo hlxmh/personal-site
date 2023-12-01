@@ -1,5 +1,5 @@
 import gsap from 'gsap';
-import { lerp, getMousePos, calcWinsize, getTranslateValues } from './utils';
+import { lerp, getMousePos } from './utils';
 
 // track the mouse position
 let mousepos = {x: 0, y: 0};
@@ -9,7 +9,7 @@ export class MagneticFx {
         // DOM elements
         this.DOM = {el: el};
         // amounts the element will translated
-        this.renderedStyles = {
+        this.animationVals = {
             tx: {previous: 0, current: 0, amt: 0.04},
             ty: {previous: 0, current: 0, amt: 0.04}
         };
@@ -25,11 +25,10 @@ export class MagneticFx {
         window.addEventListener('resize', () => this.calculateSizePosition());
 
         this.DOM.el.addEventListener('mouseenter', () => {
-            // incredibly small timeout to bypass fast movements
             this.hoverTimeout = setTimeout(() => { 
                 // set starting values for x and y to be same as pre-hover so its smooth
-                this.renderedStyles.tx.previous = gsap.getProperty(this.DOM.el, "x");
-                this.renderedStyles.ty.previous = gsap.getProperty(this.DOM.el, "y");
+                this.animationVals.tx.previous = gsap.getProperty(this.DOM.el, "x");
+                this.animationVals.ty.previous = gsap.getProperty(this.DOM.el, "y");
                 // start the render loop animation (rAF)
                 this.loopRender();
             }, 10);
@@ -59,16 +58,16 @@ export class MagneticFx {
         this.requestId = undefined;
 
         // new destination values for the translations, based on dist from middle of rect
-        this.renderedStyles.tx.current = (mousepos.x - (this.rect.left + this.rect.width/2))*.3;
-        this.renderedStyles.ty.current = (mousepos.y - (this.rect.top + this.rect.height/2))*.3;
+        this.animationVals.tx.current = (mousepos.x - (this.rect.left + this.rect.width/2))*.3;
+        this.animationVals.ty.current = (mousepos.y - (this.rect.top + this.rect.height/2))*.3;
         
-        for (const key in this.renderedStyles ) {
-            this.renderedStyles[key].previous = lerp(this.renderedStyles[key].previous, this.renderedStyles[key].current, this.renderedStyles[key].amt);
+        for (const key in this.animationVals ) {
+            this.animationVals[key].previous = lerp(this.animationVals[key].previous, this.animationVals[key].current, this.animationVals[key].amt);
         }
         
         gsap.set(this.DOM.el, {
-            x: this.renderedStyles.tx.previous,
-            y: this.renderedStyles.ty.previous
+            x: this.animationVals.tx.previous,
+            y: this.animationVals.ty.previous
         })
 
         this.loopRender()

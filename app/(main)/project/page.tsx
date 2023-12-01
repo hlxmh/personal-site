@@ -10,7 +10,7 @@ export default function Project() {
 	const [title, setTitle] = useState("");
 	
 	// beyond confused but apparently the old grid doesn't get deleted once its ref is overwritten during double setup
-	// (i do the same thing in sound and it works there?)
+	// (i do the same thing in /sound and it works there?)
 	// so this is a little dumb thing so there aren't two grids in dev
 	const isCreated = useRef(false)
 
@@ -34,7 +34,7 @@ export default function Project() {
         <main className="h-full">
 			<div className="flex w-full h-full items-center">
 				{/* mess with text size, default looks fine too */}
-				{/* TODO animate */}
+				{/* TODO animate, should be h1 */}
 				<h2 className="m-0 text-[12vw] text-[#d3d3d3] uppercase">
 					<span>{title}</span>
 				</h2>
@@ -69,8 +69,8 @@ export default function Project() {
 			</div>
 		</main>
 		<div className="cursor absolute w-full h-full top-0 left-[30px] pointer-events-none z-50">
-			<span className="cursor_title absolute top-0 text-md uppercase"></span>
-			<span className="cursor_desc absolute top-8 left-[20px] text-sm uppercase w-1/2"></span>
+			<span className="cursor-title absolute top-0 text-md uppercase"></span>
+			<span className="cursor-desc absolute top-8 left-[20px] text-sm uppercase w-1/2"></span>
 		</div>
         </>
   );
