@@ -1,15 +1,12 @@
 "use client";
 import { Grid } from './grid';
 import { Cursor } from './cursor';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import  style from 'styles/project.module.css'
+import { useEffect, useRef, useState } from 'react';
+
+// i feel bad about this but there's no good way to get overflow on the body/html as far as i can tell
 import 'styles/project.css'
 
-
-
-
-
-export default function YTPlayer() {
+export default function Project() {
 	const [title, setTitle] = useState("");
 	
 	// beyond confused but apparently the old grid doesn't get deleted once its ref is overwritten during double setup
@@ -33,37 +30,47 @@ export default function YTPlayer() {
 
   return (
     <>
-        <main>
-			<div className="content">
-				<h2 className="content__title">
+	{/* main? */}
+        <main className="h-full">
+			<div className="flex w-full h-full items-center">
+				{/* mess with text size, default looks fine too */}
+				{/* TODO animate */}
+				<h2 className="m-0 text-[12vw] text-[#d3d3d3] uppercase">
 					<span>{title}</span>
 				</h2>
-				<div className="grid">
-					{/* TODO refactor to Link component? */}
-					<a href="/sound" className="grid__item grid__item-img pos-1 bg-[url('/blonde.jpg')]" data-title="ascii music player" 
+				<div className="grid grid-cols-[repeat(50,_2%)] grid-rows-[repeat(50,_2%)] absolute w-[120%] h-[120%] top-[-10%] left-[-10%] will-change-transform" style={{ ["perspective" as any]: "1000px" }}>
+					{/* TODO refactor to Link component?, or make own custom component.... */}
+					{/* max col: 41, max row: 39 */}
+					<a href="/sound" className="grid__item bg-cover bg-center rounded-[10px] bg-[url('/blonde.jpg')] col-[1_/_span_10] row-[30_/_span_12]"
+					data-title="ascii music player" 
 					data-desc="built in react using react-youtube package for audio, spotify api for images, asciify-image and ansi-to-html to handle the ascii, and splitting to support transitions. lesson learned: frakensteining packages together sucks" >
 					</a>
-					<a href="/sound" className="grid__item grid__item-img pos-2 bg-[url('/igor.jpg')]" data-title="orange site" 
+					<a href="/sound" className="grid__item bg-cover bg-center rounded-[10px] bg-[url('/igor.jpg')] col-[18_/_span_10] row-[1_/_span_12]"
+					data-title="orange site" 
 					data-desc="this one sucks." >
 					</a>
-					<a href="/sound" className="grid__item grid__item-img pos-3 bg-[url('/wow.png')]" data-title="pdf crawl rip" 
+					<a href="/sound" className="grid__item bg-cover bg-center rounded-[10px] bg-[url('/wow.png')] col-[29_/_span_10] row-[1_/_span_12]"
+					data-title="pdf crawl rip" 
 					data-desc="small little serverside printing" >
 					</a>
-					<a href="/sound" className="grid__item grid__item-img pos-4 bg-[url('/wow.png')]" data-title="pdf crawl rip" 
+					<a href="/sound" className="grid__item bg-cover bg-center rounded-[10px] bg-[url('/wow.png')] col-[12_/_span_10] row-[15_/_span_12]"
+					data-title="pdf crawl rip" 
 					data-desc="small little serverside printing" >
 					</a>
-					<a href="/sound" className="grid__item grid__item-img pos-5 bg-[url('/gingko.jpg')]" data-title="classified" 
+					<a href="/sound" className="grid__item bg-cover bg-center rounded-[10px] bg-[url('/gingko.jpg')] col-[25_/_span_10] row-[17_/_span_12]"
+					data-title="classified" 
 					data-desc="like area 51 17 38 i w" >
 					</a>
-					<a href="/sound" className="grid__item grid__item-img pos-6 bg-[url('/blonde.jpg')]" data-title="kusa" 
+					<a href="/sound" className="grid__item bg-cover bg-center rounded-[10px] bg-[url('/blonde.jpg')] col-[41_/_span_10] row-[20_/_span_12]"
+					data-title="kusa" 
 					data-desc="www" >
 					</a>
 				</div>
 			</div>
 		</main>
-		<div className="cursor">
-			<span className="cursor_title"></span>
-			<span className="cursor_desc"></span>
+		<div className="cursor absolute w-full h-full top-0 left-[30px] pointer-events-none z-50">
+			<span className="cursor_title absolute top-0 text-md uppercase"></span>
+			<span className="cursor_desc absolute top-8 left-[20px] text-sm uppercase w-1/2"></span>
 		</div>
         </>
   );

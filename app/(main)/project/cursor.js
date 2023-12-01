@@ -1,5 +1,6 @@
-import { gsap } from 'gsap';
 import { lerp, getMousePos } from './utils';
+
+// TODO animate
 
 // Track the mouse position
 let mouse = {x: 0, y: 0};
@@ -15,8 +16,6 @@ export class Cursor {
     constructor(el) {
         this.DOM = {el: el, text: el.querySelector('.cursor_title'), desc: el.querySelector('.cursor_desc')};
 
-        this.DOM.el.style.opacity = 1;
-        
         this.renderedStyles = {
             txText: {previous: 0, current: 0, amt: 0.1},
             tyText: {previous: 0, current: 0, amt: 0.1},
@@ -36,9 +35,9 @@ export class Cursor {
         window.addEventListener('mousemove', this.onMouseMoveEv);
     }
     render() {
-        // update pos
-        this.renderedStyles['txText'].current = mouse.x - 50;
-        this.renderedStyles['tyText'].current = mouse.y - 30;
+        // update pos, on mouse, styling pos on page itself
+        this.renderedStyles['txText'].current = mouse.x;
+        this.renderedStyles['tyText'].current = mouse.y;
 
         // update animation val
         for (const key in this.renderedStyles ) {
@@ -46,8 +45,7 @@ export class Cursor {
         }
 
         // update animation
-        this.DOM.text.style.transform = `translateX(${(this.renderedStyles['txText'].previous)}px) translateY(${this.renderedStyles['tyText'].previous}px)`;
-        this.DOM.desc.style.transform = `translateX(${(this.renderedStyles['txText'].previous)}px) translateY(${this.renderedStyles['tyText'].previous + 30}px)`;
+        this.DOM.text.style.transform = this.DOM.desc.style.transform = `translateX(${(this.renderedStyles['txText'].previous)}px) translateY(${this.renderedStyles['tyText'].previous}px)`;
         requestAnimationFrame(() => this.render());
     }
 }

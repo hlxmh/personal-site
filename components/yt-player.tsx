@@ -534,7 +534,7 @@ export default function YTPlayer({playlists} :  AppProps) {
       >
       </div> */}
 
-      <div className="flex justify-center items-center flex-col h-[100%]">
+      <div className="flex justify-center items-center flex-col h-full">
         <div
           // individual style-glow kills performance
           // have to manually set width to ensure correct image ratio
@@ -552,7 +552,7 @@ export default function YTPlayer({playlists} :  AppProps) {
         </div>
       </div>
 
-      <div className="flex justify-self-end justify-between w-[100%] absolute bottom-0 px-5 pb-3">
+      <div className="flex justify-self-end justify-between w-full absolute bottom-0 px-5 pb-3">
           {/* playlist select */}
           <div className="">
             <h2>playlist</h2>

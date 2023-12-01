@@ -1,7 +1,7 @@
 import gsap from 'gsap';
 import { lerp, getMousePos, calcWinsize, getTranslateValues } from './utils';
 
-// Track the mouse position
+// track the mouse position
 let mousepos = {x: 0, y: 0};
 window.addEventListener('mousemove', ev => mousepos = getMousePos(ev));
 export class MagneticFx {

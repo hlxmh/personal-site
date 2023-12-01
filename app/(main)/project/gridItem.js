@@ -2,12 +2,12 @@ import { gsap } from 'gsap';
 import { map, lerp, getMousePos, calcWinsize, getRandomNumber } from './utils';
 import { MagneticFx }  from './magneticFx';
 
-// Calculate the viewport size
+// calculate the viewport size
 let winsize = calcWinsize();
 // i actually don't think this is necessary since the relative pos of itemms should be the same
 window.addEventListener('resize', () => winsize = calcWinsize());
 
-// Track the mouse position
+// track the mouse position
 let mousepos = {x: winsize.width/2, y: winsize.height/2};
 window.addEventListener('mousemove', ev => {mousepos = getMousePos(ev); isMouseIn = true});
 
@@ -122,9 +122,9 @@ export class GridItem {
 
         // TODO reset on mouse out of window
 
-        // Calculate the amount to move.
-        // Using linear interpolation to smooth things out. 
-        // Translation values will be in the range of [-bound, bound] for a cursor movement from 0 to the window's width/height
+        // calculate the amount to move.
+        // using linear interpolation to smooth things out. 
+        // translation values will be in the range of [-bound, bound] for a cursor movement from 0 to the window's width/height
         if (isMouseIn) {
             this.translationVals.x = lerp(this.translationVals.x, map(mousepos.x, 0, winsize.width, this.xbound, -this.xbound), 0.04);
             this.translationVals.y = lerp(this.translationVals.y, map(mousepos.y, 0, winsize.height, this.ybound, -this.ybound), 0.04);

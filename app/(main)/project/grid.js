@@ -1,7 +1,6 @@
 import { gsap } from 'gsap';
 import { EventEmitter } from 'events';
 import { GridItem } from './gridItem';
-import { getRandomNumber } from './utils';
 
 export class Grid extends EventEmitter {
     constructor(el) {
@@ -17,7 +16,7 @@ export class Grid extends EventEmitter {
         this.showItems();
         this.initEvents();
     }
-    // Initial animation to scale up and fade in the items
+    // initial animation to scale up and fade in the items
     showItems() {
         gsap
         .timeline()
