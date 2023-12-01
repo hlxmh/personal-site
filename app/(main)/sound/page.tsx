@@ -47,11 +47,15 @@ class Track {
 
 export default async function Sound() {
 
-  // const intro = new Playlist("Intro", 0)
+  // TODO add stuff
+  // spotify api still kind of broken, doesn't allow access when new songs added
+  // possibly bc of cached token?
+
   const intro = { title: "INTRO", bg: 0, tracks: [
     { title: "Self Control", artist: "Frank Ocean", url: "BME88lS6aVY", cover: "" },
     { title: "A BOY IS A GUN*", artist: "Tyler, the Creator", url: "9JQDPjpfiGw", cover: ""},
     { title: "kyu-kurarin", artist: "iyowa", url: "2b1IexhKPz4", cover: ""},
+    // { title: "Do You Wanna Get High?", artist: "Weezer", url: "h_Wu6lI-42w", cover: ""},
   ] }
 
   const hiphop = { title: "HIP HOP", bg: 0, tracks: [

@@ -339,6 +339,7 @@ export default function YTPlayer({playlists} :  AppProps) {
 
   // TODO i think there's still a visual bug with the info text
   // popping up early before transition but have to check
+  // happens on D callback
 
   // kinda sucks that ascii is state but can't set during init, has to be post-render bc of async
   const [ascii, setAscii] = useState<{ __html: string }>({ __html: "<div class='ascii'>loading...<div>" });
@@ -533,7 +534,7 @@ export default function YTPlayer({playlists} :  AppProps) {
       >
       </div> */}
 
-      <div className="flex justify-center items-center flex-col h-[100%]">
+      <div className="flex justify-center items-center flex-col h-full">
         <div
           // individual style-glow kills performance
           // have to manually set width to ensure correct image ratio
@@ -551,7 +552,7 @@ export default function YTPlayer({playlists} :  AppProps) {
         </div>
       </div>
 
-      <div className="flex justify-self-end justify-between w-[100%] absolute bottom-0 px-5 pb-3">
+      <div className="flex justify-self-end justify-between w-full absolute bottom-0 px-5 pb-3">
           {/* playlist select */}
           <div className="">
             <h2>playlist</h2>
