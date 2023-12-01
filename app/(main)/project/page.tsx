@@ -1,4 +1,5 @@
 "use client";
+// TODO eventually TS all this
 import { Grid } from './grid';
 import { Cursor } from './cursor';
 import { useEffect, useRef, useState } from 'react';
