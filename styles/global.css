@@ -11,7 +11,7 @@
     height: 100%;
   }
 
-  /* TODO fix whatever i was trying to do here?? */
+  /* TODO fix whatever i was trying to do here?, set global colours */
   h1 {
     @apply text-2xl;
   }

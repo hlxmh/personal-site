@@ -36,42 +36,46 @@ export default function Project() {
 			<div className="flex w-full h-full items-center">
 				{/* mess with text size, default looks fine too */}
 				{/* TODO animate, should be h1 */}
-				<h2 className="m-0 text-[12vw] text-[#d3d3d3] uppercase">
+				<h2 className="m-0 text-[8vw] text-[#d3d3d3] uppercase">
 					<span>{title}</span>
 				</h2>
 				<div className="grid grid-cols-[repeat(50,_2%)] grid-rows-[repeat(50,_2%)] absolute w-[120%] h-[120%] top-[-10%] left-[-10%] will-change-transform" style={{ ["perspective" as any]: "1000px" }}>
 					{/* TODO refactor to Link component?, or make own custom component.... */}
+					{/* TODO on hover video */}
+					{/* TODO add hover effects */}
+					{/* TODO add curve effect */}
 					{/* max col: 41, max row: 39 */}
-					<a href="/sound" className="grid__item bg-cover bg-center rounded-[10px] bg-[url('/blonde.jpg')] col-[1_/_span_10] row-[30_/_span_12]"
+					<a href="/sound" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/ascii.png')] col-[14_/_span_10] row-[15_/_span_12]"
 					data-title="ascii music player" 
-					data-desc="built in react using react-youtube package for audio, spotify api for images, asciify-image and ansi-to-html to handle the ascii, and splitting to support transitions. lesson learned: frakensteining packages together sucks" >
+					data-desc="built in react using react-youtube package for audio, spotify api for images, asciify-image and ansi-to-html to handle the ascii, and splitting to support transitions. lessons learned: frakensteining packages together sucks." >
 					</a>
-					<a href="/sound" className="grid__item bg-cover bg-center rounded-[10px] bg-[url('/igor.jpg')] col-[18_/_span_10] row-[1_/_span_12]"
-					data-title="orange site" 
-					data-desc="this one sucks." >
+					<a href="https://github.com/hlxmh/orange-site" target="_blank" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/orange.png')] col-[1_/_span_10] row-[1_/_span_12]"
+					data-title="orange co. site" 
+					data-desc="raw html + css, js for flavour. first 'project'. abandoned bc of unclear requests." >
 					</a>
-					<a href="/sound" className="grid__item bg-cover bg-center rounded-[10px] bg-[url('/wow.png')] col-[29_/_span_10] row-[1_/_span_12]"
-					data-title="pdf crawl rip" 
-					data-desc="small little serverside printing" >
+					<a href="https://github.com/hlxmh/image-pdf-test" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/pdf-test.png')] col-[29_/_span_10] row-[1_/_span_12]"
+					data-title="client image, server pdf" 
+					data-desc="server side printing test, uses ngx-capture for screenshots, pdfkit to handle pdfs, and express for the server." >
 					</a>
-					<a href="/sound" className="grid__item bg-cover bg-center rounded-[10px] bg-[url('/wow.png')] col-[12_/_span_10] row-[15_/_span_12]"
-					data-title="pdf crawl rip" 
-					data-desc="small little serverside printing" >
+					<a href="https://github.com/hlxmh/mainnet-test" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/mainnet-test.png')] col-[30_/_span_10] row-[30_/_span_12]"
+					data-title="mainnet api test" 
+					data-desc="pure html, create wallets and transfer bch test coins using mainnet api. lessons learned: outdated documentation is death.">
 					</a>
-					<a href="/sound" className="grid__item bg-cover bg-center rounded-[10px] bg-[url('/gingko.jpg')] col-[25_/_span_10] row-[17_/_span_12]"
-					data-title="classified" 
-					data-desc="like area 51 17 38 i w" >
+					<a href="/project/os161" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/os161.png')] col-[25_/_span_10] row-[17_/_span_12]"
+					data-title="os161" 
+					data-desc="an operating system written for school in c and occasionally assembly, ran on wsl2 docker. supports concurrency and mem management." >
 					</a>
-					<a href="/sound" className="grid__item bg-cover bg-center rounded-[10px] bg-[url('/blonde.jpg')] col-[41_/_span_10] row-[20_/_span_12]"
-					data-title="kusa" 
-					data-desc="www" >
+					<a href="/project/hydra" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/hydra.png')] col-[5_/_span_10] row-[30_/_span_12]"
+					data-title="terminal hydra" 
+					data-desc="a text implementation of the hydra card game. written in c++, featuring the mvc model and the observer design pattern." >
 					</a>
 				</div>
 			</div>
 		</main>
+		{/* TODO add a background, make more readable */}
 		<div className="cursor absolute w-full h-full top-0 left-[30px] pointer-events-none z-50">
-			<span className="cursor-title absolute top-0 text-md uppercase"></span>
-			<span className="cursor-desc absolute top-8 left-[20px] text-sm uppercase w-1/2"></span>
+			<span className="cursor-title absolute top-0 text-md uppercase text-black"></span>
+			<span className="cursor-desc absolute top-8 left-[20px] text-sm uppercase w-1/4 text-slate-800"></span>
 		</div>
         </>
   );

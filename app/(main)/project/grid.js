@@ -8,7 +8,7 @@ export class Grid extends EventEmitter {
         this.DOM = {el: el};
 
         this.gridItems = [];
-        this.DOM.items = [...this.DOM.el.querySelectorAll('.grid__item')];
+        this.DOM.items = [...this.DOM.el.querySelectorAll('.grid-item')];
         this.DOM.items.forEach(item => {
             this.gridItems.push(new GridItem(item));
         });

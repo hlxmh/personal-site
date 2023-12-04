@@ -1,32 +1,25 @@
 "use client";
 
-import styles from "../styles/header.module.css";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-const name = "AAAAAAAAAAAAAAAAA";
 
 export default function Header() {
-  // necessary?
-  const pathname = usePathname();
-  console.log(pathname);
   return (
-    <header className="fixed">
+    <header className="fixed z-10">
       <ul>
         <li>
           <Link href="/">_index</Link>
         </li>
         <li>
-          <Link href="/">_projects</Link>
+          <Link href="/project">_projects</Link>
         </li>
         <li>
-          <Link href="/">_music</Link>
+          <Link href="/sound">_music</Link>
         </li>
         <li>
-          <Link href="/">_photography</Link>
+          <Link href="/img">_photography</Link>
         </li>
         <li>
-          <Link href="/">_thoughts</Link>
+          <Link href="/txt">_thoughts</Link>
         </li>
       </ul>
     </header>
