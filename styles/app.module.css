@@ -132,6 +132,8 @@
   }
 }
 
+
+/* TODO fix this effect, its not centered properly*/
 .brackets span::before,
 .brackets span::after {
   display: inline-block;

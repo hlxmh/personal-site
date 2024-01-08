@@ -5,4 +5,9 @@
 - tailwind
 - typescript
 
-wip
+## wip
+### projects - 80%
+### music - 80%
+### animation - 0%
+### thoughts - 30%
+![home page](image.png)

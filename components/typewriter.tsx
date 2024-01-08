@@ -14,7 +14,7 @@ function setupTypewriter(t: any) {
     tag = "",
     elem,
     elemC: any,
-    writingTag = false,
+    writingTag = false, // true when inside a tag "<>"
     tagOpen = false,
     typeSpeed = 100,
     tempTypeSpeed = 0;
@@ -69,7 +69,7 @@ function setupTypewriter(t: any) {
     }
 
     cursorPosition += 1;
-    if (cursorPosition < HTML.length - 1) {
+    if (cursorPosition <= HTML.length - 1) {
       setTimeout(type, tempTypeSpeed);
     }
   };
@@ -89,36 +89,41 @@ export default function Typewriter() {
 
   return (
     <>
-      {/* REMOVE .JOIN */}
-      <p className={style.text}>
+      {/* TODO REMOVE .JOIN */}
+      {/* TODO odd overflow issue, not sure why but for now hot fixed w overflow hidden class */}
+      <p className={["overflow-x-hidden", style.text].join(" ")}>
         <span
           id="typewriter"
           className="bg-black after:content-['│'] after:animate-blink animate-flicker"
         >
           HELLO. I AM A COMPUTER SCIENCE STUDENT AT THE UNIVERSITY OF WATERLOO.
-          I MAKE{" "}
+          I MAKE
           <Link className={["invisible", style.link].join(" ")} href={`/txt/`}>
             projects
-          </Link>{" "}
-          WHEN I CAN. I ALSO LIKE OTHER THINGS.{" "}
+          </Link>
+          WHEN I CAN. I ALSO LIKE OTHER THINGS.
           <Link className={["invisible", style.link].join(" ")} href={`/txt/`}>
             music
-          </Link>{" "}
-          IS A HOBBY, AND SO IS{" "}
-          <Link className={["invisible", style.link].join(" ")} href={`/txt/`}>
-            photography
           </Link>
-          . I FROLICK IN FIELDS TOO. YOU CAN READ MY{" "}
+          IS A HOBBY, AND SO IS
+          <Link className={["invisible", style.link].join(" ")} href={`/txt/`}>
+            animation
+          </Link>
+          . BIG FAN OF FROLICKING AS WELL. YOU CAN READ MY
           <Link className={["invisible", style.link].join(" ")} href={`/txt/`}>
             thoughts
-          </Link>{" "}
-          ON THE STUFF MENTIONED ABOVE. you live as you dream you live as you
+          </Link>
+          ON THE STUFF MENTIONED ABOVE.
+          {/* TODO reset you live as you dream you live as you
           dream you live as you dream you live as you dream you live as you
-          dream
+          dream */}
         </span>
       </p>
 
-      {/* links */}
+      {/*
+      links
+      have to keep other text to fix position
+      */}
       <p
         className={[
           style.text,
@@ -127,49 +132,50 @@ export default function Typewriter() {
           "px-8",
           "left-0",
           "w-[95vw]",
+          "overflow-x-hidden"
         ].join(" ")}
       >
         <span className="invisible">
-          HELLO. I AM A COMPUTER SCIENCE STUDENT AT THE UNIVERSITY OF WATERLOO.
-          I MAKE{" "}
+          HELLO. I AM A COMPUTER SCIENCE STUDENT AT THE UNIVERSITY OF WATERLOO. I MAKE
         </span>
         <Link
-          className={[style.link, style.brackets, "animate-glow"].join(" ")}
-          href={`/txt/`}
+          className={[style.link, "animate-glow"].join(" ")}
+          href={`/project/`}
         >
+          {/* can change display (style.brackets) so it can independently line break but that breaks effects and
+              typewriter can't replicate it for some reason */}
           <span>projects</span>
         </Link>
         <span className="invisible">
-          {" "}
-          WHEN I CAN. I ALSO LIKE OTHER THINGS.{" "}
+          WHEN I CAN. I ALSO LIKE OTHER THINGS.
         </span>
         <Link
-          className={[style.link, style.brackets, "animate-glow"].join(" ")}
+          className={[style.link, "animate-glow"].join(" ")}
           href={`/sound/`}
         >
-          music
+          <span>music</span>
         </Link>
-        <span className="invisible"> IS A HOBBY, AND SO IS </span>
+        <span className="invisible">IS A HOBBY, AND SO IS</span>
         <Link
-          className={[style.link, style.brackets, "animate-glow"].join(" ")}
-          href={`/txt/`}
+          className={[style.link, "animate-glow"].join(" ")}
+          href={`/img/`}
         >
-          photography
+          <span>animation</span>
         </Link>
         <span className="invisible">
-          . I FROLICK IN FIELDS TOO. YOU CAN READ MY{" "}
+          . BIG FAN OF FROLICKING AS WELL. YOU CAN READ MY
         </span>
         <Link
-          className={[style.link, style.brackets, "animate-glow"].join(" ")}
+          className={[style.link, "animate-glow"].join(" ")}
           href={`/txt/`}
         >
-          thoughts
+          <span>thoughts</span>
         </Link>
         <span className="invisible">
-          {" "}
-          ON THE STUFF MENTIONED ABOVE. you live as you dream you live as you
+          ON THE STUFF MENTIONED ABOVE.
+          {/* TODO reset you live as you dream you live as you
           dream you live as you dream you live as you dream you live as you
-          dream
+          dream */}
         </span>
       </p>
     </>
