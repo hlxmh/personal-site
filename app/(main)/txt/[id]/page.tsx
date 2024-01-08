@@ -14,7 +14,7 @@ export default async function Post({ params }: { params: { id: string } }) {
   // how to handle caching?
   const postData = await getPostData(params?.id as string);
   return (
-    <section className="w-[90%] my-8 shadow-lg bg-black px-8 py-3 relative bg-opacity-50 mx-auto">
+    <section className="w-[90%] my-8 shadow-lg bg-black px-8 py-3 relative bg-opacity-50 mx-auto mr-5">
       <article>
         <h1>{postData.title}</h1>
         <Date dateString={postData.date} />

@@ -1,5 +1,5 @@
 ---
-title: "When to Use Static Generation v.s. Server-side Rendering"
+title: "test file, really"
 date: "2022-01-02"
 ---
 
@@ -13,6 +13,9 @@ You can use Static Generation for many types of pages, including:
 - Help and documentation
 
 You should ask yourself: "Can I pre-render this page **ahead** of a user's request?" If the answer is yes, then you should choose Static Generation.
+
+- **Static Generation** is the pre-rendering method that generates the HTML at **build time**. The pre-rendered HTML is then _reused_ on each request.
+- **Server-side Rendering** is the pre-rendering method that generates the HTML on **each request**.
 
 On the other hand, Static Generation is **not** a good idea if you cannot pre-render a page ahead of a user's request. Maybe your page shows frequently updated data, and the page content changes on every request.
 

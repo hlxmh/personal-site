@@ -3,12 +3,13 @@ import Link from "next/link";
 import Date from "components/date";
 import style from "styles/txt.module.css";
 
-export default function Home() {
+// TODO i think the highlight square pos is wrong
+export default function Txt() {
   const allPostsData = getSortedPostsData();
   return (
     <section
       id="blog_list"
-      className="w-[50%] my-8 shadow-lg bg-black px-8 py-3 relative bg-opacity-50 ml-4"
+      className="w-[50%] my-8 shadow-lg bg-black px-8 py-3 bg-opacity-50 ml-4 absolute right-4"
     >
       <h2>posts</h2>
       <nav>

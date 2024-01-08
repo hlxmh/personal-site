@@ -10,67 +10,65 @@ function setupTypewriter(t: any) {
 
   t.innerHTML = "";
 
-  var cursorPosition = 0,
+  var pos = 0,
     tag = "",
-    elem,
-    elemC: any,
-    writingTag = false, // true when inside a tag "<>"
+    elemTag: any, // tag element
+    writingTag = false,
     tagOpen = false,
     typeSpeed = 100,
-    tempTypeSpeed = 0;
+    curTypeSpeed = 0;
 
   var type = function () {
+    // writing tag
     if (writingTag === true) {
-      tag += HTML[cursorPosition];
-      console.log(1);
-      console.log(tag);
+      tag += HTML[pos];
     }
 
-    if (HTML[cursorPosition] === "<") {
-      tempTypeSpeed = 0;
-      if (tagOpen) {
+    // recognize and prepare to write tag
+    if (HTML[pos] === "<") {
+      curTypeSpeed = 0;
+      if (tagOpen) { // prepare to close a tag ("</a>")
         tagOpen = false;
         writingTag = true;
       } else {
         tag = "";
         tagOpen = true;
         writingTag = true;
-        tag += HTML[cursorPosition];
-        console.log(2);
-        console.log(tag);
-      }
-    }
-    if (!writingTag && tagOpen) {
-      elemC.innerHTML += HTML[cursorPosition];
-      console.log(3);
-      console.log(typeof tag);
-      console.log(tag);
-    }
-    if (!writingTag && !tagOpen) {
-      if (HTML[cursorPosition] === " ") {
-        tempTypeSpeed = 0;
-      } else {
-        tempTypeSpeed = Math.random() * typeSpeed + 50;
-      }
-      t.innerHTML += HTML[cursorPosition];
-    }
-    if (writingTag === true && HTML[cursorPosition] === ">") {
-      tempTypeSpeed = Math.random() * typeSpeed + 50;
-      writingTag = false;
-      if (tagOpen) {
-        elem = document.createElement("span");
-        t.appendChild(elem);
-        elem.innerHTML = tag;
-        tag = "";
-        elemC = elem.firstChild;
-        console.log(4);
-        console.log(tag);
+        tag += HTML[pos];
       }
     }
 
-    cursorPosition += 1;
-    if (cursorPosition <= HTML.length - 1) {
-      setTimeout(type, tempTypeSpeed);
+    // text inside of tag
+    if (!writingTag && tagOpen) {
+      elemTag.innerHTML += HTML[pos];
+    }
+
+    // regular text
+    if (!writingTag && !tagOpen) {
+      if (HTML[pos] === " ") {
+        curTypeSpeed = 0;
+      } else {
+        curTypeSpeed = Math.random() * typeSpeed + 50;
+      }
+      t.innerHTML += HTML[pos];
+    }
+
+    // prepare to write inside of tag
+    if (writingTag === true && HTML[pos] === ">") {
+      curTypeSpeed = Math.random() * typeSpeed + 50;
+      writingTag = false;
+      if (tagOpen) {
+        var elem = document.createElement("span");
+        t.appendChild(elem);
+        elem.innerHTML = tag;
+        tag = "";
+        elemTag = elem.firstChild;
+      }
+    }
+
+    pos += 1;
+    if (pos <= HTML.length - 1) {
+      setTimeout(type, curTypeSpeed);
     }
   };
 
