@@ -109,7 +109,6 @@ export class TypeShuffle {
             target: this.DOM.el,
             by: 'lines'
         })
-        // TODO fix TS decl
         results.forEach(s => Splitting({ target: s.words }));
         
         // for every line
