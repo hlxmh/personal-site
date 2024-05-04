@@ -20,6 +20,7 @@ const victor_mono = Victor_Mono({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-victor-mono",
+  adjustFontFallback: false,
 });
 
 const space_mono = Space_Mono({

@@ -34,6 +34,7 @@
     "@types/splitting": "^1.0.3",
     "@types/youtube-player": "^5.5.8",
     "autoprefixer": "^10.4.16",
+    "encoding": "^0.1.13",
     "eslint-config-next": "^13.5.3",
     "postcss": "^8.4.30",
     "prettier": "^3.0.3",
