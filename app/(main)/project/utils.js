@@ -6,7 +6,11 @@ const map = (x, a, b, c, d) => (x - a) * (d - c) / (b - a) + c;
 const lerp = (a, b, n) => (1 - n) * a + n * b;
 
 const calcWinsize = () => {
-    return {width: window.innerWidth, height: window.innerHeight};
+    if (typeof window !== "undefined") {
+        return {width: window.innerWidth, height: window.innerHeight};
+    } else {
+        return {width: 0, height: 0};
+    }
 };
 
 const getRandomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);

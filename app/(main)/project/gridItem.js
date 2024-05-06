@@ -5,14 +5,21 @@ import { MagneticFx }  from './magneticFx';
 // calculate the viewport size
 let winsize = calcWinsize();
 // i actually don't think this is necessary since the relative pos of items should be the same
-window.addEventListener('resize', () => winsize = calcWinsize());
+if (typeof window !== "undefined") {
+    window.addEventListener('resize', () => winsize = calcWinsize());
+}
 
 // track the mouse position
 let mousepos = {x: winsize.width/2, y: winsize.height/2};
-window.addEventListener('mousemove', ev => {mousepos = getMousePos(ev); isMouseIn = true});
+if (typeof window !== "undefined") {
+    window.addEventListener('mousemove', ev => {mousepos = getMousePos(ev); isMouseIn = true});
+}
 
 let isMouseIn = false;
-window.addEventListener('mouseout', () => isMouseIn = false);
+
+if (typeof window !== "undefined") {
+    window.addEventListener('mouseout', () => isMouseIn = false);
+}
 
 export class GridItem {
     constructor(el) {

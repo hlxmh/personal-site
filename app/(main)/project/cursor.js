@@ -4,7 +4,9 @@ import { lerp, getMousePos } from './utils';
 
 // Track the mouse position
 let mouse = {x: 0, y: 0};
-window.addEventListener('mousemove', ev => mouse = getMousePos(ev));
+if (typeof window !== "undefined") {
+    window.addEventListener('mousemove', ev => mouse = getMousePos(ev));
+}
 
 export class Cursor {
     // text and desc are unused here, but needed for page.tsx

@@ -4,7 +4,9 @@ import { lerp, getMousePos } from './utils';
 // track the mouse position
 let mousepos = {x: 0, y: 0};
 // TODO this is erroring?
-window.addEventListener('mousemove', ev => mousepos = getMousePos(ev));
+if (typeof window !== "undefined") {
+    window.addEventListener('mousemove', ev => mousepos = getMousePos(ev));
+}
 export class MagneticFx {
     constructor(el) {
         // DOM elements
