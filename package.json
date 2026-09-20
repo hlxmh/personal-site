@@ -5,11 +5,11 @@
     "dev": "next dev",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test",
     "postinstall": "patch-package"
   },
   "dependencies": {
-    "@react-three/fiber": "^8.14.5",
-    "@types/three": "^0.157.0",
     "ansi-to-html": "^0.7.2",
     "asciify-image": "^0.1.10",
     "clsx": "^2.0.0",
@@ -24,8 +24,7 @@
     "remark": "^14.0.2",
     "remark-html": "^15.0.1",
     "splitting": "^1.0.6",
-    "tailwind-merge": "^1.14.0",
-    "three": "^0.157.0"
+    "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
     "@types/node": "^18.11.9",
@@ -34,8 +33,7 @@
     "@types/splitting": "^1.0.3",
     "@types/youtube-player": "^5.5.8",
     "autoprefixer": "^10.4.16",
-    "encoding": "^0.1.13",
-    "eslint-config-next": "^13.5.3",
+    "eslint-config-next": "14.1.1",
     "postcss": "^8.4.30",
     "prettier": "^3.0.3",
     "prettier-plugin-tailwindcss": "^0.5.6",

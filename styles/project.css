@@ -1,5 +1,5 @@
-html, 
-body, 
-main {
+.project-page {
+	position: fixed;
+	inset: 0;
 	overflow: hidden;
 }

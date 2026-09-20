@@ -18,8 +18,7 @@ export class Grid extends EventEmitter {
     }
     // initial animation to scale up and fade in the items
     showItems() {
-        gsap
-        .timeline()
+        this.showTimeline = gsap.timeline()
         .addLabel('start', 0)
         .set(this.DOM.items, {scale: 1.5, opacity: 0}, 0)
         .to(this.DOM.items, {
@@ -36,16 +35,35 @@ export class Grid extends EventEmitter {
         }, 'start');
     }
     initEvents() {
+		this.itemHandlers = new Map();
         for(const item of this.gridItems) {
-            item.DOM.el.addEventListener('mouseenter', () => {
+			const mouseEnter = () => {
                 item.onMouseEnter();
                 this.emit('mouseEnterItem', item.title, item.desc);
-            });
+            };
             
-            item.DOM.el.addEventListener('mouseleave', () => {
+			const mouseLeave = () => {
                 item.onMouseLeave();
                 this.emit('mouseLeaveItem');
-            });
+			};
+			this.itemHandlers.set(item, {mouseEnter, mouseLeave});
+			item.DOM.el.addEventListener('mouseenter', mouseEnter);
+			item.DOM.el.addEventListener('mouseleave', mouseLeave);
         }
     }
+	destroy() {
+		if (this.destroyed) return;
+		this.destroyed = true;
+		this.showTimeline?.kill();
+		for (const item of this.gridItems) {
+			const handlers = this.itemHandlers.get(item);
+			if (handlers) {
+				item.DOM.el.removeEventListener('mouseenter', handlers.mouseEnter);
+				item.DOM.el.removeEventListener('mouseleave', handlers.mouseLeave);
+			}
+			item.destroy();
+		}
+		this.itemHandlers.clear();
+		this.removeAllListeners();
+	}
 }

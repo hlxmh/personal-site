@@ -1,46 +1,82 @@
-'use server'
+import 'server-only'
 
-export async function getToken() {
-    const res = await fetch('https://accounts.spotify.com/api/token', {
-        method: 'POST',
-        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: 'grant_type=client_credentials&client_id=22ccd93026c2444cb2371026caedbf78&client_secret=e368a3c1b7a74d02be2ca73e2e48fc57',
-    })
+import { unstable_cache } from 'next/cache'
+import { normalizeSearchTerm, spotifyTrackKey } from './spotify-utils'
 
-    if (!res.ok) {
-        // This will activate the closest `error.js` Error Boundary
-        throw new Error('Failed to fetch data')
-    }
-    return res.json()
+export { spotifyTrackKey }
+
+const TOKEN_REVALIDATE_SECONDS = 50 * 60
+const SEARCH_REVALIDATE_SECONDS = 12 * 60 * 60
+
+type SpotifyTokenResponse = { access_token: string }
+
+export type SpotifyTrackSearchResult = {
+  tracks: {
+    items: Array<{ album: { images: Array<{ url: string }> } }>
+  }
 }
 
-export async function search(token: string, title: string, artist: string) {
-    // honestly i have no clue what the track/artist filter does so im just gonna ignore it
-    const res = await fetch(
-        'https://api.spotify.com/v1/search?q=' +
-            artist +
-            ' ' +
-            title +
-            '&type=track',
-        {
-            // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-            headers: {
-                Authorization: 'Bearer ' + token,
-            },
-        }
-    )
+function spotifyCredentials() {
+  const clientId = process.env.SPOTIFY_CLIENT_ID
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET
 
-    if (!res.ok) {
-        // This will activate the closest `error.js` Error Boundary
-        console.log(res)
-        //   BQAul6COmT1zilzwEGMs2ud3kE172voj3L_Pz_PDIQeD0tjiQWk31enho_UWkN-6qINspJVEi9xt63JpUWWsyE0zxcqD0XQ9gbfg-8fXB02WtvL4luI
-        //   BQAul6COmT1zilzwEGMs2ud3kE172voj3L_Pz_PDIQeD0tjiQWk31enho_UWkN-6qINspJVEi9xt63JpUWWsyE0zxcqD0XQ9gbfg-8fXB02WtvL4luI
-        console.log('token' + token)
-        throw new Error('Failed to fetch super data')
+  if (!clientId || !clientSecret) {
+    throw new Error(
+      'Spotify is not configured. Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in the server environment.'
+    )
+  }
+
+  return { clientId, clientSecret }
+}
+
+const getCachedToken = unstable_cache(
+  async (): Promise<string> => {
+    const { clientId, clientSecret } = spotifyCredentials()
+    const body = new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: clientId,
+      client_secret: clientSecret,
+    })
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+      cache: 'no-store',
+    })
+
+    if (!response.ok) {
+      throw new Error(`Spotify token request failed with status ${response.status}.`)
     }
 
-    return res.json()
+    const token = (await response.json()) as SpotifyTokenResponse
+    return token.access_token
+  },
+  ['spotify-access-token'],
+  { revalidate: TOKEN_REVALIDATE_SECONDS }
+)
+
+const searchCached = unstable_cache(
+  async (title: string, artist: string): Promise<SpotifyTrackSearchResult> => {
+    const token = await getCachedToken()
+    const query = new URLSearchParams({
+      q: `${artist} ${title}`,
+      type: 'track',
+      limit: '1',
+    })
+    const response = await fetch(`https://api.spotify.com/v1/search?${query.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    if (!response.ok) {
+      throw new Error(`Spotify search request failed with status ${response.status}.`)
+    }
+
+    return (await response.json()) as SpotifyTrackSearchResult
+  },
+  ['spotify-track-search'],
+  { revalidate: SEARCH_REVALIDATE_SECONDS }
+)
+
+export async function search(title: string, artist: string) {
+  return searchCached(normalizeSearchTerm(title), normalizeSearchTerm(artist))
 }

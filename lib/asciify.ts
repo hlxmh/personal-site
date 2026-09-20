@@ -1,4 +1,4 @@
-'use server'
+import 'server-only'
 
 import asciify from "asciify-image";
 import Convert from "ansi-to-html";

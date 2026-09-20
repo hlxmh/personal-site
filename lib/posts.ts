@@ -3,67 +3,82 @@ import path from "path";
 import matter from "gray-matter";
 import { remark } from "remark";
 import html from "remark-html";
+import {
+  getPostId,
+  isSafePostId,
+  validatePostMetadata,
+} from "./post-utils";
 
 const postsDirectory = path.join(process.cwd(), "posts");
+const markdownExtension = ".md";
 
-export function getSortedPostsData() {
-  // Get file names under /posts
-  const fileNames = fs.readdirSync(postsDirectory);
-  const allPostsData = fileNames.map((fileName) => {
-    // Remove ".md" from file name to get id
-    const id = fileName.replace(/\.md$/, "");
+export type PostSummary = {
+  id: string;
+  date: string;
+  title: string;
+};
 
-    // Read markdown file as string
-    const fullPath = path.join(postsDirectory, fileName);
-    const fileContents = fs.readFileSync(fullPath, "utf8");
+export type PostData = PostSummary & {
+  contentHtml: string;
+};
 
-    // Use gray-matter to parse the post metadata section
-    const matterResult = matter(fileContents);
-
-    // Combine the data with the id
-    return {
-      id,
-      ...(matterResult.data as { date: string; title: string }),
-    };
-  });
-  // Sort posts by date
-  return allPostsData.sort((a, b) => {
-    if (a.date < b.date) {
-      return 1;
-    } else {
-      return -1;
-    }
-  });
+function getMarkdownFileNames() {
+  return fs
+    .readdirSync(postsDirectory, { withFileTypes: true })
+    .filter(
+      (entry) => entry.isFile() && path.extname(entry.name) === markdownExtension,
+    )
+    .map((entry) => entry.name);
 }
 
-export function getAllPostIds() {
-  const fileNames = fs.readdirSync(postsDirectory);
-  return fileNames.map((fileName) => {
-    return {
-      params: {
-        id: fileName.replace(/\.md$/, ""),
-      },
-    };
-  });
+function readPost(fileName: string) {
+  const fileContents = fs.readFileSync(
+    path.join(postsDirectory, fileName),
+    "utf8",
+  );
+  const parsed = matter(fileContents);
+
+  return {
+    content: parsed.content,
+    metadata: validatePostMetadata(fileName, parsed.data),
+  };
 }
 
-export async function getPostData(id: string) {
-  const fullPath = path.join(postsDirectory, `${id}.md`);
-  const fileContents = fs.readFileSync(fullPath, "utf8");
+export function getSortedPostsData(): PostSummary[] {
+  return getMarkdownFileNames()
+    .map((fileName) => {
+      const id = getPostId(fileName);
+      const { metadata } = readPost(fileName);
 
-  // Use gray-matter to parse the post metadata section
-  const matterResult = matter(fileContents);
+      return { id, ...metadata };
+    })
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
 
-  // Use remark to convert markdown into HTML string
-  const processedContent = await remark()
-    .use(html)
-    .process(matterResult.content);
-  const contentHtml = processedContent.toString();
+export function getAllPostIds(): Array<{ id: string }> {
+  return getMarkdownFileNames().map((fileName) => ({
+    id: getPostId(fileName),
+  }));
+}
 
-  // Combine the data with the id and contentHtml
+export async function getPostData(id: string): Promise<PostData | null> {
+  if (!isSafePostId(id)) {
+    return null;
+  }
+
+  const fileName = `${id}${markdownExtension}`;
+  const fullPath = path.join(postsDirectory, fileName);
+
+  if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
+    return null;
+  }
+
+  const { content, metadata } = readPost(fileName);
+  const processedContent = await remark().use(html).process(content);
+
   return {
     id,
-    contentHtml,
-    ...(matterResult.data as { date: string; title: string }),
+    contentHtml: processedContent.toString(),
+    ...metadata,
   };
 }

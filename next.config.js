@@ -1,6 +1,3 @@
 module.exports = {
-    experimental: {
-      serverActions: true,
-    },
-    optimizeFonts: false,
-  }
+  optimizeFonts: false,
+}

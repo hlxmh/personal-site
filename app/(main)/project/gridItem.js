@@ -2,28 +2,24 @@ import { gsap } from 'gsap';
 import { map, lerp, getMousePos, calcWinsize, getRandomNumber } from './utils';
 import { MagneticFx }  from './magneticFx';
 
-// calculate the viewport size
-let winsize = calcWinsize();
-// i actually don't think this is necessary since the relative pos of items should be the same
-if (typeof window !== "undefined") {
-    window.addEventListener('resize', () => winsize = calcWinsize());
-}
-
-// track the mouse position
-let mousepos = {x: winsize.width/2, y: winsize.height/2};
-if (typeof window !== "undefined") {
-    window.addEventListener('mousemove', ev => {mousepos = getMousePos(ev); isMouseIn = true});
-}
-
-let isMouseIn = false;
-
-if (typeof window !== "undefined") {
-    window.addEventListener('mouseout', () => isMouseIn = false);
-}
-
 export class GridItem {
     constructor(el) {
         this.DOM = {el: el};
+		this.winsize = calcWinsize();
+		this.mousepos = {x: this.winsize.width/2, y: this.winsize.height/2};
+		this.isMouseIn = false;
+		this.onResize = () => {
+			this.winsize = calcWinsize();
+			this.setInitialEffects();
+		};
+		this.onMouseMove = ev => {
+			this.mousepos = getMousePos(ev);
+			this.isMouseIn = true;
+		};
+		this.onMouseOut = () => { this.isMouseIn = false; };
+		window.addEventListener('resize', this.onResize);
+		window.addEventListener('mousemove', this.onMouseMove);
+		window.addEventListener('mouseout', this.onMouseOut);
         this.title = this.DOM.el.dataset.title;
         this.desc = this.DOM.el.dataset.desc;
         // amounts to move in each axis when moving the cursor
@@ -53,22 +49,22 @@ export class GridItem {
         const rect = this.DOM.el.getBoundingClientRect();
         
         // check if the element is positioned on the left/top side of the viewport 
-        this.isLeft = rect.left+rect.width/2 < winsize.width/2;
-        this.isTop = rect.top+rect.height/2 < winsize.height/2;
+        this.isLeft = rect.left+rect.width/2 < this.winsize.width/2;
+        this.isTop = rect.top+rect.height/2 < this.winsize.height/2;
 
         // define base rotation and z based on pos on screen
         // rY - higher as more left (rotate leftwards)
         // rX - lower as more top (rotate upwards)
         // tZ - lower as more away from center (farther away)
         this.rY = this.isLeft ?
-                        map(rect.left+rect.width/2, 0, winsize.width/2, -this.rybound, 0) :
-                        map(rect.left+rect.width/2, winsize.width/2, winsize.width, 0, this.rybound);
+                        map(rect.left+rect.width/2, 0, this.winsize.width/2, -this.rybound, 0) :
+                        map(rect.left+rect.width/2, this.winsize.width/2, this.winsize.width, 0, this.rybound);
         this.rX = this.isTop ?
-                        map(rect.top+rect.height/2, 0, winsize.height/2, this.rxbound, 0) :
-                        map(rect.top+rect.height/2, winsize.height/2, winsize.height, 0, -this.rxbound);
+                        map(rect.top+rect.height/2, 0, this.winsize.height/2, this.rxbound, 0) :
+                        map(rect.top+rect.height/2, this.winsize.height/2, this.winsize.height, 0, -this.rxbound);
         this.tZ = this.isLeft ?
-                        map(rect.left+rect.width/2, 0, winsize.width/2,  -600, -200) :
-                        map(rect.left+rect.width/2, winsize.width/2, winsize.width, -200, -600);
+                        map(rect.left+rect.width/2, 0, this.winsize.width/2,  -600, -200) :
+                        map(rect.left+rect.width/2, this.winsize.width/2, this.winsize.width, -200, -600);
 
         gsap.set(this.DOM.el, {
             z: this.tZ
@@ -126,20 +122,21 @@ export class GridItem {
     // translate/rotate the grid items as we move the mouse
     move() {
         this.requestId = undefined;
+		if (this.destroyed) return;
 
         // calculate the amount to move.
         // using linear interpolation to smooth things out. 
         // translation values will be in the range of [-bound, bound] for a cursor movement from 0 to the window's width/height
-        if (isMouseIn) {
-            this.translationVals.x = lerp(this.translationVals.x, map(mousepos.x, 0, winsize.width, this.xbound, -this.xbound), 0.04);
-            this.translationVals.y = lerp(this.translationVals.y, map(mousepos.y, 0, winsize.height, this.ybound, -this.ybound), 0.04);
-            this.rotationVals.x = lerp(this.rotationVals.x, map(mousepos.y, 0, winsize.height, this.rxbound, -this.rxbound), 0.04)
-            this.rotationVals.y = lerp(this.rotationVals.y, map(mousepos.x, 0, winsize.width, this.rybound, -this.rybound), 0.04);
+        if (this.isMouseIn) {
+            this.translationVals.x = lerp(this.translationVals.x, map(this.mousepos.x, 0, this.winsize.width, this.xbound, -this.xbound), 0.04);
+            this.translationVals.y = lerp(this.translationVals.y, map(this.mousepos.y, 0, this.winsize.height, this.ybound, -this.ybound), 0.04);
+            this.rotationVals.x = lerp(this.rotationVals.x, map(this.mousepos.y, 0, this.winsize.height, this.rxbound, -this.rxbound), 0.04)
+            this.rotationVals.y = lerp(this.rotationVals.y, map(this.mousepos.x, 0, this.winsize.width, this.rybound, -this.rybound), 0.04);
         } else { // reset to default positions when out of window
-            this.translationVals.x = lerp(this.translationVals.x, map(winsize.width/2, 0, winsize.width, this.xbound, -this.xbound), 0.02);
-            this.translationVals.y = lerp(this.translationVals.y, map(winsize.height/2, 0, winsize.height, this.ybound, -this.ybound), 0.02);
-            this.rotationVals.x = lerp(this.rotationVals.x, map(winsize.height/2, 0, winsize.height, this.rxbound, -this.rxbound), 0.02)
-            this.rotationVals.y = lerp(this.rotationVals.y, map(winsize.width/2, 0, winsize.width, this.rybound, -this.rybound), 0.02);
+            this.translationVals.x = lerp(this.translationVals.x, map(this.winsize.width/2, 0, this.winsize.width, this.xbound, -this.xbound), 0.02);
+            this.translationVals.y = lerp(this.translationVals.y, map(this.winsize.height/2, 0, this.winsize.height, this.ybound, -this.ybound), 0.02);
+            this.rotationVals.x = lerp(this.rotationVals.x, map(this.winsize.height/2, 0, this.winsize.height, this.rxbound, -this.rxbound), 0.02)
+            this.rotationVals.y = lerp(this.rotationVals.y, map(this.winsize.width/2, 0, this.winsize.width, this.rybound, -this.rybound), 0.02);
         }
 
         if (this.isMagnetic) {
@@ -158,4 +155,17 @@ export class GridItem {
 
         this.loopTransformAnimation();
     }
+	destroy() {
+		if (this.destroyed) return;
+		this.destroyed = true;
+		window.removeEventListener('resize', this.onResize);
+		window.removeEventListener('mousemove', this.onMouseMove);
+		window.removeEventListener('mouseout', this.onMouseOut);
+		if (this.hoverTimeout) clearTimeout(this.hoverTimeout);
+		this.stopTransformAnimation();
+		this.timelineHoverIn?.kill();
+		this.timelineHoverOut?.kill();
+		this.magneticFx.destroy();
+		gsap.killTweensOf(this.DOM.el);
+	}
 }
