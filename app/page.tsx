@@ -1,5 +1,4 @@
 import Typewriter from "components/typewriter";
-import style from "styles/app.module.css";
 
 export default function Home() {
   return (

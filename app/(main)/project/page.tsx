@@ -47,7 +47,7 @@ export default function Project() {
 				<h2 className="m-0 text-[8vw] text-[#d3d3d3] uppercase">
 					<span>{title}</span>
 				</h2>
-				<div ref={gridRef} className="grid grid-cols-[repeat(50,_2%)] grid-rows-[repeat(50,_2%)] absolute w-[120%] h-[120%] top-[-10%] left-[-10%] will-change-transform" style={{ ["perspective" as any]: "1000px" }}>
+				<div ref={gridRef} className="grid grid-cols-[repeat(50,_2%)] grid-rows-[repeat(50,_2%)] absolute w-[120%] h-[120%] top-[-10%] left-[-10%] will-change-transform" style={{ perspective: "1000px" }}>
 					{/* TODO refactor to Link component?, or make own custom component.... */}
 					{/* TODO on hover video */}
 					{/* TODO add hover effects */}

@@ -9,12 +9,13 @@ import Date from "../../../../components/date";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-type PostPageProps = { params: { id: string } };
+type PostPageProps = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({
   params,
 }: PostPageProps): Promise<Metadata> {
-  const postData = await getPostData(params.id);
+  const { id } = await params;
+  const postData = await getPostData(id);
 
   if (!postData) {
     notFound();
@@ -27,7 +28,8 @@ export async function generateMetadata({
 }
 
 export default async function Post({ params }: PostPageProps) {
-  const postData = await getPostData(params.id);
+  const { id } = await params;
+  const postData = await getPostData(id);
 
   if (!postData) {
     notFound();

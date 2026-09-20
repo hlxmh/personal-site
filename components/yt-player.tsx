@@ -34,23 +34,26 @@ export default function YTPlayer({playlists} : AppProps) {
   // i know this also looks redundant but i need to delay the music info change so that i can have it transition out
   const [musicInfo, setMusicInfo] = useState({ title: playlists[music.playlist].tracks[music.track].title, artist: playlists[music.playlist].tracks[music.track].artist});
 
-  const asciiTrans = useRef<TypeShuffle>();
-  const infoTrans = useRef<TypeShuffle>();
+  const asciiTrans = useRef<TypeShuffle | undefined>(undefined);
+  const infoTrans = useRef<TypeShuffle | undefined>(undefined);
   const oldMusic = useRef({ playlist: PLAYLIST.HEART, track: 0 })
-  const player = useRef<YouTubePlayer>();
+  const player = useRef<YouTubePlayer | undefined>(undefined);
   const asciiHostRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLDivElement>(null);
   const mounted = useRef(true);
 	const loadGeneration = useRef(0);
-	const loadedPlaylist = useRef<number>();
+	const loadedPlaylist = useRef<number | undefined>(undefined);
   const playlistIds = useMemo(
     () => playlists[music.playlist].tracks.map((track) => track.url),
     [music.playlist, playlists],
   );
 	const selectedPlaylist = useRef(music.playlist);
 	const playlistIdsRef = useRef(playlistIds);
-	selectedPlaylist.current = music.playlist;
-	playlistIdsRef.current = playlistIds;
+
+	useLayoutEffect(() => {
+		selectedPlaylist.current = music.playlist;
+		playlistIdsRef.current = playlistIds;
+	}, [music.playlist, playlistIds]);
 
 	useEffect(() => {
 		mounted.current = true;
@@ -75,7 +78,7 @@ export default function YTPlayer({playlists} : AppProps) {
   useEffect(() => {
     // done this way bc need to keep the same TypeShuffle for smooth transition
     function changeAscii(asciiMarkup: string) {
-      var html = document.createElement("div")
+      const html = document.createElement("div")
       html.innerHTML = asciiMarkup;
       html.classList.add("ascii")
       asciiTrans.current?.change(html)
@@ -91,19 +94,19 @@ export default function YTPlayer({playlists} : AppProps) {
   }, [music, playlists]);
 
   useEffect(() => {
-    makeNewInfo()
-    return () => infoTrans.current?.destroy();
-  }, [musicInfo]);
-
-  function makeNewInfo() {
     const textElement = infoRef.current;
+    if (!textElement) return;
 
-    if (textElement) {
-        infoTrans.current?.destroy();
-        infoTrans.current = new TypeShuffle(textElement as HTMLDivElement)
-        infoTrans.current.initTransitionInfo() 
-    }
-  }
+    infoTrans.current?.destroy();
+    const transition = new TypeShuffle(textElement);
+    infoTrans.current = transition;
+    transition.initTransitionInfo();
+
+    return () => {
+      transition.destroy();
+      if (infoTrans.current === transition) infoTrans.current = undefined;
+    };
+  }, [musicInfo]);
 
   // couple options to handle the player, if this breaks down just change video from videoId prop
   // though ideally don't because it'll re-render the whole thing (it might already be though)

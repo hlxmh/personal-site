@@ -1,10 +1,10 @@
 {
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "next build --webpack",
     "dev": "next dev",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "node --test",
     "postinstall": "patch-package"
@@ -16,10 +16,10 @@
     "date-fns": "^2.29.3",
     "gray-matter": "^4.0.3",
     "gsap": "^3.12.2",
-    "next": "^14.1.1",
+    "next": "16.3.3",
     "patch-package": "^8.0.0",
-    "react": "18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "react-youtube": "^10.1.0",
     "remark": "^14.0.2",
     "remark-html": "^15.0.1",
@@ -27,21 +27,22 @@
     "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
-    "@types/node": "^18.11.9",
-    "@types/react": "^18.0.25",
-    "@types/react-dom": "^18.2.13",
+    "@types/node": "20.19.43",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "@types/splitting": "^1.0.3",
     "@types/youtube-player": "^5.5.8",
     "autoprefixer": "^10.4.16",
-    "eslint-config-next": "14.1.1",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.3",
     "postcss": "^8.4.30",
     "prettier": "^3.0.3",
     "prettier-plugin-tailwindcss": "^0.5.6",
     "tailwindcss": "^3.3.3",
-    "typescript": "^4.8.4"
+    "typescript": "6.0.3"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20.9.0"
   },
   "browser": {
     "child_process": false

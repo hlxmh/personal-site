@@ -19,6 +19,12 @@ const segments: Segment[] = [
 ];
 
 const completeText = segments.map(({ text }) => text).join("");
+const positionedSegments = segments.map((segment, index) => ({
+  ...segment,
+  start: segments
+    .slice(0, index)
+    .reduce((total, precedingSegment) => total + precedingSegment.text.length, 0),
+}));
 
 function useTypedLength(totalLength: number) {
   const [length, setLength] = useState(0);
@@ -42,17 +48,14 @@ export default function Typewriter() {
     [],
   );
   const visibleLength = useTypedLength(totalLength);
-  let offset = 0;
 
   return (
 	<p className={["overflow-x-hidden", style.text].join(" ")}>
       <span className="bg-black after:content-['│'] after:animate-blink animate-flicker">
-        {segments.map((segment, index) => {
-          const start = offset;
-          offset += segment.text.length;
+        {positionedSegments.map((segment, index) => {
           const visibleText = segment.text.slice(
             0,
-            Math.max(0, Math.min(segment.text.length, visibleLength - start)),
+            Math.max(0, Math.min(segment.text.length, visibleLength - segment.start)),
           );
 
           if (!visibleText) return null;
