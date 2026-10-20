@@ -1,13 +1,12 @@
-import { parseISO, format } from "date-fns";
+import { formatPublicationDate } from 'lib/posts/publication-date'
 
 export default function Date({ dateString }: { dateString: string }) {
-  const date = parseISO(dateString);
   return (
     <time
       className="text-gray-400 tracking-[0.3em] lowercase text-xs"
       dateTime={dateString}
     >
-      {format(date, "LLLL d, yyyy")}
+      {formatPublicationDate(dateString)}
     </time>
   );
 }

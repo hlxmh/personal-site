@@ -1,10 +1,10 @@
+import { Suspense } from 'react'
+import { io } from 'next/cache'
 import YTPlayer from 'components/yt-player'
 import htmlAsciify from 'lib/asciify'
 import { search } from 'lib/spotify'
 import { collectUniqueTracks, mapTrackMetadata } from 'lib/spotify-utils'
 import type { MusicPlaylist, MusicTrack } from 'lib/music-types'
-
-export const dynamic = 'force-dynamic'
 
 const playlists: MusicPlaylist[] = [
   {
@@ -27,7 +27,10 @@ const playlists: MusicPlaylist[] = [
   },
 ]
 
-export default async function Sound() {
+async function SoundContent() {
+  // Render at request time to avoid deployment issues
+  await io()
+
   const uniqueTracks = collectUniqueTracks(playlists) as Map<
     string,
     Pick<MusicTrack, 'title' | 'artist'>
@@ -44,4 +47,12 @@ export default async function Sound() {
   const resolvedPlaylists = mapTrackMetadata(playlists, new Map(metadataEntries))
 
   return <YTPlayer playlists={resolvedPlaylists} />
+}
+
+export default function Sound() {
+  return (
+    <Suspense fallback={null}>
+      <SoundContent />
+    </Suspense>
+  )
 }

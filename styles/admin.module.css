@@ -1,0 +1,157 @@
+.shell {
+  width: min(72rem, calc(100% - 2rem));
+  margin: 3rem auto;
+  padding: clamp(1rem, 3vw, 2rem);
+  background: rgb(0 0 0 / 72%);
+  border: 1px solid rgb(193 180 146 / 45%);
+  box-shadow: 0.5rem 0.5rem 0 rgb(210 115 138 / 20%);
+}
+
+.header,
+.editorHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.headerActions,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.headerActions > div {
+  margin: 0;
+}
+
+.headerActions > div > button,
+.actions button,
+.primaryLink {
+  display: inline-block;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.85rem;
+  color: #fff;
+  background: #171313;
+  border: 1px solid #c1b492;
+  text-decoration: none;
+}
+
+.headerActions > div > button:hover,
+.actions button:hover,
+.primaryLink:hover {
+  color: #fff;
+  background: rgb(210 115 138 / 35%);
+}
+
+.actions button:disabled,
+.headerActions button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.eyebrow {
+  margin-bottom: 0.25rem;
+  color: #d2738a;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+}
+
+.postList {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.postList a {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 1rem;
+  background: rgb(23 19 19 / 75%);
+  border-left: 0.25rem solid #d2738a;
+  text-decoration: none;
+}
+
+.postMeta,
+.pending {
+  color: #9d947d;
+  font-size: 0.85rem;
+}
+
+.backLink {
+  margin-top: 1.5rem;
+}
+
+.editorForm {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.field label {
+  color: #fff;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 0.75rem;
+  color: #eee6cf;
+  background: #0d0b0b;
+  border: 1px solid #726b59;
+  border-radius: 0;
+  font: inherit;
+}
+
+.field textarea {
+  min-height: 24rem;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.field input:focus,
+.field textarea:focus,
+.actions button:focus-visible,
+.primaryLink:focus-visible {
+  outline: 2px solid #d2738a;
+  outline-offset: 2px;
+}
+
+.dangerButton {
+  border-color: #eb8297 !important;
+}
+
+.error {
+  padding: 0.75rem;
+  color: #ffd4dc;
+  background: rgb(139 31 52 / 45%);
+  border-left: 0.25rem solid #eb8297;
+}
+
+.pending {
+  min-height: 1.25rem;
+  margin: 0;
+}
+
+@media (max-width: 40rem) {
+  .header,
+  .editorHeader {
+    display: grid;
+  }
+
+  .headerActions,
+  .actions {
+    width: 100%;
+  }
+}
