@@ -216,24 +216,28 @@ export default function YTPlayer({tracks} : AppProps) {
             // individual style-glow kills performance
             // Keep the original square ASCII box; source thumbnails are center-cropped before conversion.
             className={cx(
-              "h-[min(420px,calc(102.439vw-40.976px))] w-[min(410px,calc(100vw-40px))] text-[min(7.7px,calc(1.878vw-0.751px))]/[1.2]",
+              "relative isolate h-[min(420px,calc(102.439vw-40.976px))] w-[min(410px,calc(100vw-40px))] text-[min(7.7px,calc(1.878vw-0.751px))]/[1.2]",
             )}
             ref={asciiHostRef}
-            dangerouslySetInnerHTML={ascii}
-          ></div>
+          >
+            <div aria-hidden="true" className="pointer-events-none absolute -inset-3 bg-black bg-opacity-40 shadow-lg"></div>
+            <div className="relative z-10 h-full w-full" dangerouslySetInnerHTML={ascii}></div>
+          </div>
 
           {/* key doesn't really matter, just need one to force react to completely re-render this*/}
           {/* else the splitting package leaves a stupid bannana attr that messes up the text change transitions */}
           {/* TODO make the blinking not suck */}
-          <div ref={infoRef} key={musicInfo.artist} className={cx('info', {'animate-slow_blink': (!loadingState && playerState == PlayerStates.PLAYING)})}>
-            <h2 className="mt-5 mr-20">{musicInfo.title}</h2>
-            <h3 className="ml-20 text-xs opacity-70">{musicInfo.artist}</h3>
+          <div className="mt-5 bg-black bg-opacity-40 px-6 py-3 shadow-lg">
+            <div ref={infoRef} key={musicInfo.artist} className={cx('info', {'animate-slow_blink': (!loadingState && playerState == PlayerStates.PLAYING)})}>
+              <h2 className="mr-20">{musicInfo.title}</h2>
+              <h3 className="ml-20 text-xs opacity-70">{musicInfo.artist}</h3>
+            </div>
           </div>
 
         </div>
 
         <aside className="w-full max-w-[410px] xl:absolute xl:right-5 xl:top-1/2 xl:w-[300px] xl:-translate-y-1/2">
-          <section aria-label="Track list" aria-busy={loadingState}>
+          <section aria-label="Track list" aria-busy={loadingState} className="bg-black bg-opacity-40 px-3 py-3 shadow-lg">
             <ol ref={trackListRef} className="max-h-[min(420px,55vh)] overflow-y-auto overscroll-contain pr-1">
               {tracks.map((track, index) => {
                 const isCurrent = index === trackIndex;
@@ -269,7 +273,7 @@ export default function YTPlayer({tracks} : AppProps) {
           </section>
 
           <div className="mt-8 flex w-full justify-end">
-            <h3 className="flex h-fit gap-4">
+            <h3 className="flex h-fit gap-4 bg-black bg-opacity-40 px-4 py-3 shadow-lg">
               <button type="button" onClick={prev} disabled={loadingState} aria-label="Previous track" className={cx('cursor-pointer', {'opacity-40': loadingState})}>prev</button>
               <button type="button" onClick={playPause} disabled={loadingState} aria-label={playerState == PlayerStates.PLAYING ? "Pause" : "Play"} className={cx('cursor-pointer', {'opacity-40': loadingState})}>
                 {playerState == PlayerStates.PLAYING ? "⏸" : "⏵"}

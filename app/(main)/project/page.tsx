@@ -55,7 +55,7 @@ export default function Project() {
 					{/* max col: 41, max row: 39 */}
 					<a href="/sound" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/ascii.png')] col-[14_/_span_10] row-[15_/_span_12]"
 					data-title="ascii music player" 
-					data-desc="built in react using react-youtube for audio and thumbnails, asciify-image and ansi-to-html to handle the ascii, and splitting to support transitions. lessons learned: frakensteining packages together sucks." >
+					data-desc="built in react using react-youtube for audio and thumbnails, jimp to sample full-color ascii, and splitting to support transitions." >
 						<span className="sr-only">ASCII music player</span>
 					</a>
 					<a href="https://github.com/hlxmh/image-pdf-test" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/pdf-test.png')] col-[29_/_span_10] row-[1_/_span_12]"

@@ -17,8 +17,6 @@
     "@neondatabase/auth": "0.5.0-beta",
     "@neondatabase/serverless": "1.2.0",
     "@next/env": "16.3.8",
-    "ansi-to-html": "^0.7.2",
-    "asciify-image": "^0.1.10",
     "clsx": "^2.0.0",
     "drizzle-orm": "0.45.4",
     "gray-matter": "^4.0.3",

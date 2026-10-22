@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   cacheComponents: true,
-  serverExternalPackages: ['asciify-image', 'jimp'],
+  serverExternalPackages: ['jimp'],
 };
 
 module.exports = nextConfig;
