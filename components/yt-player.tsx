@@ -187,7 +187,7 @@ export default function YTPlayer({tracks} : AppProps) {
         <div
           // individual style-glow kills performance
           // Keep the original square ASCII box; source thumbnails are center-cropped before conversion.
-          className={cx("w-[410px] h-[420px] text-[9.9px]/[1.2]")}
+          className={cx("w-[410px] h-[420px] text-[7.7px]/[1.2]")}
           ref={asciiHostRef}
           dangerouslySetInnerHTML={ascii}
         ></div>

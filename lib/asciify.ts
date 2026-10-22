@@ -8,8 +8,8 @@ export default async function html_asciify(img: string) {
   const convert = new Convert();
   const options = {
     fit: "box" as const,
-    width: 35,
-    height: 35,
+    width: 45,
+    height: 45,
   };
   const asciiImage = { __html: "" };
   const response = await fetch(img);
