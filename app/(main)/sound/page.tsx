@@ -1,5 +1,4 @@
 import { Suspense } from 'react'
-import { io } from 'next/cache'
 import YTPlayerLoader from 'components/yt-player-loader'
 import htmlAsciify from 'lib/asciify'
 import type { MusicTrack, ResolvedMusicTrack } from 'lib/music-types'
