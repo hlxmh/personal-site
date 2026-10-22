@@ -26,6 +26,7 @@ export default function Project() {
 		const handleMouseLeave = () => {
 			cursor.DOM.text.textContent = '';
 			cursor.DOM.desc.textContent = '';
+			setTitle('');
 		};
 
 		grid.on('mouseEnterItem', handleMouseEnter);
