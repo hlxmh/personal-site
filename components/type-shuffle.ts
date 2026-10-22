@@ -179,7 +179,7 @@ export class TypeShuffle {
   }
 
   initTransition() {
-    const iterations = 8;
+    const iterations = 10;
     this.runBatchedTransition(
       this.lines.flatMap((line) => line.cells),
       iterations,
@@ -197,7 +197,7 @@ export class TypeShuffle {
   initTransitionInfo() {
     if (!this.lines[0]?.cells[0]) return;
     const generation = this.beginTransition();
-    const iterations = 5;
+    const iterations = 4;
     const loop = (lineIndex: number, cellIndex: number, iteration = 0) => {
       const cell = this.lines[lineIndex]?.cells[cellIndex];
       if (!cell) return;
@@ -222,7 +222,7 @@ export class TypeShuffle {
 
   change(element: HTMLDivElement) {
     const nextLines = parseTargetLines(element);
-    const iterations = 6;
+    const iterations = 10;
     const cells = this.lines.flatMap((line) =>
       line.cells.flatMap((cell) => {
         const nextCell = nextLines[line.position]?.[cell.position];
