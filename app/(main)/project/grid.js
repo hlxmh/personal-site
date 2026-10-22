@@ -30,7 +30,7 @@ export class Grid extends EventEmitter {
         .to(this.DOM.items, {
             duration: 1.2,
             ease: 'power1',
-            opacity: 1,
+            opacity: 0.8,
             stagger: {amount: 0.4, grid: 'auto', from: 'center'}
         }, 'start');
     }

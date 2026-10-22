@@ -44,7 +44,7 @@ export default function Project() {
 			<div className="flex w-full h-full items-center">
 				{/* mess with text size, default looks fine too */}
 				{/* TODO animate, should be h1 */}
-				<h2 className="m-0 text-[8vw] text-[#d3d3d3] uppercase">
+				<h2 className="m-0 text-[8vw] uppercase opacity-75">
 					<span>{title}</span>
 				</h2>
 				<div ref={gridRef} className="grid grid-cols-[repeat(50,_2%)] grid-rows-[repeat(50,_2%)] absolute w-[120%] h-[120%] top-[-10%] left-[-10%] will-change-transform" style={{ perspective: "1000px" }}>
