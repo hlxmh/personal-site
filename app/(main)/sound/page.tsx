@@ -18,9 +18,6 @@ const tracks: MusicTrack[] = [
 ]
 
 async function SoundContent() {
-  // Render at request time to avoid deployment issues
-  await io()
-
   const videoIds = new Set(tracks.map((track) => track.url))
   const asciiEntries = await Promise.all(
     Array.from(videoIds, async (videoId) => {
