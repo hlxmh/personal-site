@@ -19,8 +19,9 @@ export default function YTPlayer({tracks} : AppProps) {
   );
   const [trackIndex, setTrackIndex] = useState(0);
   const [playerState, setPlayerState] = useState(PlayerStates.PAUSED);
+  const [playerReady, setPlayerReady] = useState(false);
   // i know this looks redundant but yt player states don't give enough info
-  // loading when new video (UNSTARTED), done once playing (PLAYING)
+  // Loading reflects only YouTube's UNSTARTED and BUFFERING states.
   const [loadingState, setLoadingState] = useState(true);
   // i know this also looks redundant but i need to delay the music info change so that i can have it transition out
   const [musicInfo, setMusicInfo] = useState({ title: tracks[0].title, artist: tracks[0].artist});
@@ -33,6 +34,9 @@ export default function YTPlayer({tracks} : AppProps) {
   const infoRef = useRef<HTMLDivElement>(null);
   const mounted = useRef(true);
 	const loadGeneration = useRef(0);
+  const stateRequestSequence = useRef(0);
+  const trackListRef = useRef<HTMLOListElement>(null);
+  const trackButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const trackIds = useMemo(
     () => tracks.map((track) => track.url),
     [tracks],
@@ -96,10 +100,26 @@ export default function YTPlayer({tracks} : AppProps) {
     };
   }, [musicInfo]);
 
+  useEffect(() => {
+    const list = trackListRef.current;
+    const button = trackButtonRefs.current[trackIndex];
+    if (!list || !button) return;
+
+    const listRect = list.getBoundingClientRect();
+    const buttonRect = button.getBoundingClientRect();
+
+    if (buttonRect.top < listRect.top) {
+      list.scrollTop -= listRect.top - buttonRect.top;
+    } else if (buttonRect.bottom > listRect.bottom) {
+      list.scrollTop += buttonRect.bottom - listRect.bottom;
+    }
+  }, [trackIndex]);
+
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
     player.current = event.target;
 	loadGeneration.current += 1;
 	event.target.loadPlaylist(trackIdsRef.current, 0);
+	setPlayerReady(true);
 	setLoadingState(true);
   };
 
@@ -107,6 +127,7 @@ export default function YTPlayer({tracks} : AppProps) {
   const onStateChange: YouTubeProps["onStateChange"] = async (event) => {
 	const target = event.target;
 	const generation = loadGeneration.current;
+	const requestSequence = ++stateRequestSequence.current;
 	const expectedIds = trackIdsRef.current;
 	const [state, idx, currentIds] = await Promise.all([
 		target.getPlayerState(),
@@ -117,20 +138,19 @@ export default function YTPlayer({tracks} : AppProps) {
 		!mounted.current ||
 		player.current !== target ||
 		generation !== loadGeneration.current ||
+		requestSequence !== stateRequestSequence.current ||
 		!Array.isArray(currentIds) ||
 		currentIds.length !== expectedIds.length ||
 		currentIds.some((id: string, index: number) => id !== expectedIds[index])
 	) return;
 
     setPlayerState(state);
-    if (state == PlayerStates.UNSTARTED) {
-	  if (idx >= 0) {
-		setTrackIndex((current) => current !== idx ? idx : current);
-        setLoadingState(true);
-      }
-	} else if (state === PlayerStates.PLAYING) {
-	  setLoadingState(false);
+	if (Number.isInteger(idx) && idx >= 0 && idx < tracks.length) {
+	  setTrackIndex((current) => current !== idx ? idx : current);
     }
+    setLoadingState(
+      state === PlayerStates.UNSTARTED || state === PlayerStates.BUFFERING,
+    );
   };
 
   function playPause() {
@@ -147,6 +167,13 @@ export default function YTPlayer({tracks} : AppProps) {
 
   function prev() {
     player.current?.previousVideo();
+  }
+
+  function selectTrack(index: number) {
+    if (!playerReady) return;
+    stateRequestSequence.current += 1;
+    setLoadingState(true);
+    player.current?.playVideoAt(index);
   }
 
 	const opts = useMemo<YouTubeProps["opts"]>(() => ({
@@ -183,33 +210,75 @@ export default function YTPlayer({tracks} : AppProps) {
       >
       </div> */}
 
-      <div className="flex justify-center items-center flex-col h-full">
-        <div
-          // individual style-glow kills performance
-          // Keep the original square ASCII box; source thumbnails are center-cropped before conversion.
-          className={cx("w-[410px] h-[420px] text-[7.7px]/[1.2]")}
-          ref={asciiHostRef}
-          dangerouslySetInnerHTML={ascii}
-        ></div>
+      <main className="relative flex min-h-screen flex-col items-center justify-center gap-10 px-5 py-16 xl:block">
+        <div className="flex w-full min-w-0 max-w-[410px] flex-col items-center xl:absolute xl:left-1/2 xl:top-1/2 xl:-translate-x-1/2 xl:-translate-y-1/2">
+          <div
+            // individual style-glow kills performance
+            // Keep the original square ASCII box; source thumbnails are center-cropped before conversion.
+            className={cx(
+              "h-[min(420px,calc(102.439vw-40.976px))] w-[min(410px,calc(100vw-40px))] text-[min(7.7px,calc(1.878vw-0.751px))]/[1.2]",
+            )}
+            ref={asciiHostRef}
+            dangerouslySetInnerHTML={ascii}
+          ></div>
 
-        {/* key doesn't really matter, just need one to force react to completely re-render this*/}
-        {/* else the splitting package leaves a stupid bannana attr that messes up the text change transitions */}
-        {/* TODO make the blinking not suck */}
-        <div ref={infoRef} key={musicInfo.artist} className={cx('info', {'animate-slow_blink': (!loadingState && playerState == PlayerStates.PLAYING)})}>
-          <h2 className="mt-5 mr-20">{musicInfo.title}</h2>
-          <h3 className="ml-20">{musicInfo.artist}</h3>
-        </div>
-      </div>
+          {/* key doesn't really matter, just need one to force react to completely re-render this*/}
+          {/* else the splitting package leaves a stupid bannana attr that messes up the text change transitions */}
+          {/* TODO make the blinking not suck */}
+          <div ref={infoRef} key={musicInfo.artist} className={cx('info', {'animate-slow_blink': (!loadingState && playerState == PlayerStates.PLAYING)})}>
+            <h2 className="mt-5 mr-20">{musicInfo.title}</h2>
+            <h3 className="ml-20 text-xs opacity-70">{musicInfo.artist}</h3>
+          </div>
 
-      <div className="flex justify-self-end justify-end w-full absolute bottom-0 px-5 pb-3">
-          <h3 className="h-fit self-end flex gap-4">
-          <button type="button" onClick={prev} disabled={loadingState} aria-label="Previous track" className={cx('cursor-pointer', {'opacity-40': loadingState})}>prev</button>
-            <button type="button" onClick={playPause} disabled={loadingState} aria-label={playerState == PlayerStates.PLAYING ? "Pause" : "Play"} className={cx('cursor-pointer', {'opacity-40': loadingState})}>
-              {playerState == PlayerStates.PLAYING ? "⏸" : "⏵"}
-            </button>
-            <button type="button" onClick={next} disabled={loadingState} aria-label="Next track" className={cx('cursor-pointer', {'opacity-40': loadingState})}>next</button>
-          </h3>
         </div>
+
+        <aside className="w-full max-w-[410px] xl:absolute xl:right-5 xl:top-1/2 xl:w-[300px] xl:-translate-y-1/2">
+          <section aria-label="Track list" aria-busy={loadingState}>
+            <ol ref={trackListRef} className="max-h-[min(420px,55vh)] overflow-y-auto overscroll-contain pr-1">
+              {tracks.map((track, index) => {
+                const isCurrent = index === trackIndex;
+
+                return (
+                  <li key={track.url}>
+                    <button
+                      ref={(element) => {
+                        trackButtonRefs.current[index] = element;
+                      }}
+                      type="button"
+                      onClick={() => selectTrack(index)}
+                      disabled={!playerReady}
+                      aria-current={isCurrent ? "true" : undefined}
+                      className={cx(
+                        "grid w-full grid-cols-[1rem_2rem_minmax(0,1fr)] items-start gap-2 px-2 py-2 text-left transition-colors",
+                        "hover:bg-[#d2738a]/10 hover:text-[#d2738a]",
+                        "disabled:cursor-wait disabled:opacity-40",
+                        {"bg-[#d2738a]/15 text-[#d2738a]": isCurrent},
+                      )}
+                    >
+                      <span aria-hidden="true">{isCurrent ? ">" : ""}</span>
+                      <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                      <span className="min-w-0">
+                        <span className="block truncate">{track.title}</span>
+                        <span className="block truncate text-xs opacity-70">{track.artist}</span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+
+          <div className="mt-8 flex w-full justify-end">
+            <h3 className="flex h-fit gap-4">
+              <button type="button" onClick={prev} disabled={loadingState} aria-label="Previous track" className={cx('cursor-pointer', {'opacity-40': loadingState})}>prev</button>
+              <button type="button" onClick={playPause} disabled={loadingState} aria-label={playerState == PlayerStates.PLAYING ? "Pause" : "Play"} className={cx('cursor-pointer', {'opacity-40': loadingState})}>
+                {playerState == PlayerStates.PLAYING ? "⏸" : "⏵"}
+              </button>
+              <button type="button" onClick={next} disabled={loadingState} aria-label="Next track" className={cx('cursor-pointer', {'opacity-40': loadingState})}>next</button>
+            </h3>
+          </div>
+        </aside>
+      </main>
     </>
   );
 }
