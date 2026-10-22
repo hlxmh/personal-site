@@ -2,58 +2,46 @@
 
 // Youtube component needs function props so it has to be client... boo
 import YouTube, { YouTubePlayer, YouTubeProps } from "react-youtube";
-import style from "styles/txt.module.css";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import PlayerStates from "youtube-player/dist/constants/PlayerStates";
 import "splitting/dist/splitting.css";
 import "splitting/dist/splitting-cells.css";
 import { TypeShuffle } from "components/type-shuffle";
-import type { ResolvedMusicPlaylist } from "lib/music-types";
+import type { ResolvedMusicTrack } from "lib/music-types";
 import { cx } from "lib/utils";
 
-type AppProps = { playlists: ResolvedMusicPlaylist[] };
+type AppProps = { tracks: ResolvedMusicTrack[] };
 
-export default function YTPlayer({playlists} : AppProps) {
-  // manually synced w/ playlists prop
-  enum PLAYLIST {
-    HEART = 0,
-    HIPHOP = 1,
-    POP = 2,
-    JP = 3,
-  }
-
+export default function YTPlayer({tracks} : AppProps) {
   const ascii = useMemo(
-    () => ({ __html: `<div class="ascii">${playlists[0].tracks[0].ascii}</div>` }),
-    [playlists],
+    () => ({ __html: `<div class="ascii">${tracks[0].ascii}</div>` }),
+    [tracks],
   );
-  const [music, setMusic] = useState({ playlist: PLAYLIST.HEART, track: 0 });
+  const [trackIndex, setTrackIndex] = useState(0);
   const [playerState, setPlayerState] = useState(PlayerStates.PAUSED);
   // i know this looks redundant but yt player states don't give enough info
   // loading when new video (UNSTARTED), done once playing (PLAYING)
   const [loadingState, setLoadingState] = useState(true);
   // i know this also looks redundant but i need to delay the music info change so that i can have it transition out
-  const [musicInfo, setMusicInfo] = useState({ title: playlists[music.playlist].tracks[music.track].title, artist: playlists[music.playlist].tracks[music.track].artist});
+  const [musicInfo, setMusicInfo] = useState({ title: tracks[0].title, artist: tracks[0].artist});
 
   const asciiTrans = useRef<TypeShuffle | undefined>(undefined);
   const infoTrans = useRef<TypeShuffle | undefined>(undefined);
-  const oldMusic = useRef({ playlist: PLAYLIST.HEART, track: 0 })
+  const oldTrackIndex = useRef(0)
   const player = useRef<YouTubePlayer | undefined>(undefined);
   const asciiHostRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLDivElement>(null);
   const mounted = useRef(true);
 	const loadGeneration = useRef(0);
-	const loadedPlaylist = useRef<number | undefined>(undefined);
-  const playlistIds = useMemo(
-    () => playlists[music.playlist].tracks.map((track) => track.url),
-    [music.playlist, playlists],
+  const trackIds = useMemo(
+    () => tracks.map((track) => track.url),
+    [tracks],
   );
-	const selectedPlaylist = useRef(music.playlist);
-	const playlistIdsRef = useRef(playlistIds);
+	const trackIdsRef = useRef(trackIds);
 
 	useLayoutEffect(() => {
-		selectedPlaylist.current = music.playlist;
-		playlistIdsRef.current = playlistIds;
-	}, [music.playlist, playlistIds]);
+		trackIdsRef.current = trackIds;
+	}, [trackIds]);
 
 	useEffect(() => {
 		mounted.current = true;
@@ -85,13 +73,13 @@ export default function YTPlayer({playlists} : AppProps) {
     }
 
     // prevent spam, and also fixes bugs during init useEffect bombs
-    if (oldMusic.current.playlist !== music.playlist || oldMusic.current.track !== music.track) {
-      changeAscii(playlists[music.playlist].tracks[music.track].ascii)
-      infoTrans?.current?.cleanTransition((() => setMusicInfo({ title: playlists[music.playlist].tracks[music.track].title, artist: playlists[music.playlist].tracks[music.track].artist })))
+    if (oldTrackIndex.current !== trackIndex) {
+      changeAscii(tracks[trackIndex].ascii)
+      infoTrans?.current?.cleanTransition((() => setMusicInfo({ title: tracks[trackIndex].title, artist: tracks[trackIndex].artist })))
       
-      oldMusic.current = music
+      oldTrackIndex.current = trackIndex
     }
-  }, [music, playlists]);
+  }, [trackIndex, tracks]);
 
   useEffect(() => {
     const textElement = infoRef.current;
@@ -108,26 +96,18 @@ export default function YTPlayer({playlists} : AppProps) {
     };
   }, [musicInfo]);
 
-  // couple options to handle the player, if this breaks down just change video from videoId prop
-  // though ideally don't because it'll re-render the whole thing (it might already be though)
-  // well it definitely does for playlist changing, but idk about video
-
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
     player.current = event.target;
-	loadedPlaylist.current = selectedPlaylist.current;
 	loadGeneration.current += 1;
-	event.target.loadPlaylist(playlistIdsRef.current, 0);
+	event.target.loadPlaylist(trackIdsRef.current, 0);
 	setLoadingState(true);
-    // TODO If you have shuffled the playlist, the return value will identify the video's order within the shuffled playlist.
-    // shuffle on after first visit (server action?), will have to init img stuff after shuffle i guess
   };
 
   // yt is really cool and decided not to make an event on video change
   const onStateChange: YouTubeProps["onStateChange"] = async (event) => {
 	const target = event.target;
 	const generation = loadGeneration.current;
-	const expectedPlaylist = selectedPlaylist.current;
-	const expectedIds = playlistIdsRef.current;
+	const expectedIds = trackIdsRef.current;
 	const [state, idx, currentIds] = await Promise.all([
 		target.getPlayerState(),
 		target.getPlaylistIndex(),
@@ -137,7 +117,6 @@ export default function YTPlayer({playlists} : AppProps) {
 		!mounted.current ||
 		player.current !== target ||
 		generation !== loadGeneration.current ||
-		expectedPlaylist !== selectedPlaylist.current ||
 		!Array.isArray(currentIds) ||
 		currentIds.length !== expectedIds.length ||
 		currentIds.some((id: string, index: number) => id !== expectedIds[index])
@@ -146,23 +125,13 @@ export default function YTPlayer({playlists} : AppProps) {
     setPlayerState(state);
     if (state == PlayerStates.UNSTARTED) {
 	  if (idx >= 0) {
-		setMusic((current) => current.playlist === expectedPlaylist && current.track !== idx
-		  ? {playlist: expectedPlaylist, track: idx}
-		  : current);
+		setTrackIndex((current) => current !== idx ? idx : current);
         setLoadingState(true);
       }
 	} else if (state === PlayerStates.PLAYING) {
 	  setLoadingState(false);
     }
   };
-
-  useEffect(() => {
-	if (!player.current || loadedPlaylist.current === music.playlist) return;
-	loadedPlaylist.current = music.playlist;
-	loadGeneration.current += 1;
-	player.current.loadPlaylist(playlistIds, 0);
-    setLoadingState(true);
-	}, [music.playlist, playlistIds]);
 
   function playPause() {
     if (playerState == PlayerStates.PLAYING) {
@@ -191,32 +160,6 @@ export default function YTPlayer({playlists} : AppProps) {
       loop: 1,
     },
 	}), []);
-
-  const playlistSelect = playlists.map((playlist, idx) =>
-    <button
-    type="button"
-    key={idx}
-    onClick={() => {
-      setMusic({playlist : idx, track: 0});;
-    }}
-    className={[
-      style.menu__item,
-      "mb-5",
-      "post",
-      "before:content-['']",
-      music.playlist == idx ? "bg-black bg-opacity-20" : "",
-    ].join(" ")}
-    // TODO add spotify link
-    // href="https://google.com"
-    // target="_blank"
-    aria-pressed={music.playlist == idx}
-    >
-      <h3>
-        <span className={style.menu__item_name}>{playlist.title.toLowerCase()}</span>
-      </h3>
-    </button>
-  );
-
   return (
     <>
       <YouTube
@@ -243,9 +186,8 @@ export default function YTPlayer({playlists} : AppProps) {
       <div className="flex justify-center items-center flex-col h-full">
         <div
           // individual style-glow kills performance
-          // have to manually set width to ensure correct image ratio
-          // manual height is to ensure no layout shift from loading in image
-          className={cx("w-[410px] h-[420px] text-[14px]/[1.2]")}
+          // Keep the original square ASCII box; source thumbnails are center-cropped before conversion.
+          className={cx("w-[410px] h-[420px] text-[9.9px]/[1.2]")}
           ref={asciiHostRef}
           dangerouslySetInnerHTML={ascii}
         ></div>
@@ -259,15 +201,7 @@ export default function YTPlayer({playlists} : AppProps) {
         </div>
       </div>
 
-      <div className="flex justify-self-end justify-between w-full absolute bottom-0 px-5 pb-3">
-          {/* playlist select */}
-          <div className="">
-            <h2>playlist</h2>
-            <nav>
-              {playlistSelect}
-            </nav>
-          </div>
-          
+      <div className="flex justify-self-end justify-end w-full absolute bottom-0 px-5 pb-3">
           <h3 className="h-fit self-end flex gap-4">
           <button type="button" onClick={prev} disabled={loadingState} aria-label="Previous track" className={cx('cursor-pointer', {'opacity-40': loadingState})}>prev</button>
             <button type="button" onClick={playPause} disabled={loadingState} aria-label={playerState == PlayerStates.PLAYING ? "Pause" : "Play"} className={cx('cursor-pointer', {'opacity-40': loadingState})}>

@@ -26,6 +26,11 @@ class Line {
   constructor(readonly position: number) {}
 }
 
+type TargetCell = {
+  original: string;
+  originalColor: string | undefined;
+};
+
 function splitIntoLines(element: HTMLDivElement) {
   const results = Splitting({ target: element, by: "lines" });
   results.forEach((result) => Splitting({ target: result.words }));
@@ -42,6 +47,34 @@ function splitIntoLines(element: HTMLDivElement) {
   });
 }
 
+function parseTargetLines(element: HTMLDivElement) {
+  const lines: TargetCell[][] = [[]];
+
+  const visit = (node: Node, inheritedColor?: string) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      for (const character of node.textContent ?? "") {
+        lines.at(-1)?.push({
+          original: character,
+          originalColor: inheritedColor,
+        });
+      }
+      return;
+    }
+
+    if (!(node instanceof HTMLElement)) return;
+    if (node.tagName === "BR") {
+      lines.push([]);
+      return;
+    }
+
+    const color = node.style.color || inheritedColor;
+    node.childNodes.forEach((child) => visit(child, color));
+  };
+
+  element.childNodes.forEach((child) => visit(child));
+  return lines;
+}
+
 /** Owns all timers and DOM mutations for the ASCII and track-info shuffle effects. */
 export class TypeShuffle {
   private readonly lettersAndSymbols = [
@@ -53,6 +86,7 @@ export class TypeShuffle {
   ];
   private lines: Line[];
   private timers = new Set<number>();
+  private animationFrame: number | undefined;
   private generation = 0;
   private destroyed = false;
 
@@ -72,7 +106,59 @@ export class TypeShuffle {
     this.generation += 1;
     this.timers.forEach((timer) => window.clearTimeout(timer));
     this.timers.clear();
+    if (this.animationFrame !== undefined) {
+      window.cancelAnimationFrame(this.animationFrame);
+      this.animationFrame = undefined;
+    }
     return this.generation;
+  }
+
+  private runBatchedTransition<T>(
+    items: T[],
+    iterations: number,
+    interval: number,
+    minDelay: number,
+    maxDelay: number,
+    render: (item: T, iteration: number) => void,
+  ) {
+    const generation = this.beginTransition();
+    const entries = items.map((item) => ({
+      item,
+      delay: this.randomDelay(minDelay, maxDelay),
+      iteration: -1,
+    }));
+    const startedAt = window.performance.now();
+
+    const tick = (now: number) => {
+      if (this.destroyed || generation !== this.generation) return;
+
+      let hasPendingEntries = false;
+      entries.forEach((entry) => {
+        const elapsed = now - startedAt - entry.delay;
+        if (elapsed < 0) {
+          hasPendingEntries = true;
+          return;
+        }
+
+        const iteration = Math.min(
+          iterations - 1,
+          Math.floor(elapsed / interval),
+        );
+        if (iteration !== entry.iteration) {
+          render(entry.item, iteration);
+          entry.iteration = iteration;
+        }
+        if (iteration < iterations - 1) hasPendingEntries = true;
+      });
+
+      if (hasPendingEntries) {
+        this.animationFrame = window.requestAnimationFrame(tick);
+      } else {
+        this.animationFrame = undefined;
+      }
+    };
+
+    this.animationFrame = window.requestAnimationFrame(tick);
   }
 
   private randomCharacter() {
@@ -93,20 +179,18 @@ export class TypeShuffle {
   }
 
   initTransition() {
-    const generation = this.beginTransition();
-    const iterations = 30;
-    const loop = (cell: Cell, iteration = 0) => {
-      cell.set(iteration >= iterations - 1 ? cell.original : this.randomCharacter());
-      const nextIteration = iteration + 1;
-      if (nextIteration < iterations) {
-        this.schedule(() => loop(cell, nextIteration), 80, generation);
-      }
-    };
-
-    this.lines.forEach((line) =>
-      line.cells.forEach((cell) =>
-        this.schedule(() => loop(cell), this.randomDelay(500, 20000), generation),
-      ),
+    const iterations = 8;
+    this.runBatchedTransition(
+      this.lines.flatMap((line) => line.cells),
+      iterations,
+      50,
+      100,
+      2500,
+      (cell, iteration) => {
+        cell.set(
+          iteration >= iterations - 1 ? cell.original : this.randomCharacter(),
+        );
+      },
     );
   }
 
@@ -137,31 +221,33 @@ export class TypeShuffle {
   }
 
   change(element: HTMLDivElement) {
-    const nextLines = splitIntoLines(element);
-    const generation = this.beginTransition();
-    const iterations = 10;
-    const loop = (line: Line, cell: Cell, iteration = 0) => {
-      const nextCell = nextLines[line.position]?.cells[cell.position];
-      if (!nextCell) return;
-      if (iteration >= iterations - 1) {
-        cell.set(nextCell.original);
-        cell.color = nextCell.originalColor;
-        cell.element.style.color = cell.color ?? "";
-      } else {
-        cell.set(this.randomCharacter());
-        cell.element.style.color = Math.random() > 0.5
-          ? nextCell.originalColor ?? cell.color ?? ""
-          : cell.color ?? "";
-      }
-      const nextIteration = iteration + 1;
-      if (nextIteration < iterations) {
-        this.schedule(() => loop(line, cell, nextIteration), 80, generation);
-      }
-    };
-    this.lines.forEach((line) =>
-      line.cells.forEach((cell) =>
-        this.schedule(() => loop(line, cell), this.randomDelay(500, 15000), generation),
-      ),
+    const nextLines = parseTargetLines(element);
+    const iterations = 6;
+    const cells = this.lines.flatMap((line) =>
+      line.cells.flatMap((cell) => {
+        const nextCell = nextLines[line.position]?.[cell.position];
+        return nextCell ? [{ cell, nextCell }] : [];
+      }),
+    );
+
+    this.runBatchedTransition(
+      cells,
+      iterations,
+      50,
+      100,
+      2000,
+      ({ cell, nextCell }, iteration) => {
+        if (iteration >= iterations - 1) {
+          cell.set(nextCell.original);
+          cell.color = nextCell.originalColor;
+          cell.element.style.color = cell.color ?? "";
+        } else {
+          cell.set(this.randomCharacter());
+          cell.element.style.color = Math.random() > 0.5
+            ? nextCell.originalColor ?? cell.color ?? ""
+            : cell.color ?? "";
+        }
+      },
     );
   }
 

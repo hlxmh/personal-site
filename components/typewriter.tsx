@@ -7,15 +7,16 @@ import style from "styles/app.module.css";
 type Segment = { text: string; href?: string };
 
 const segments: Segment[] = [
-  { text: "HELLO. I AM A COMPUTER SCIENCE STUDENT AT THE UNIVERSITY OF WATERLOO. I MAKE " },
+  { text: "HELLO. I AM A DEVELOPER FROM THE UNIVERSITY OF WATERLOO. I MAKE " },
   { text: "projects", href: "/project/" },
-  { text: " WHEN I CAN. I ALSO LIKE OTHER THINGS. " },
+  { text: " WHEN I CAN. I ALSO LISTEN TO A LOT OF " },
   { text: "music", href: "/sound/" },
-  { text: " IS A HOBBY, AND SO IS " },
-  { text: "animation", href: "/img/" },
-  { text: ". BIG FAN OF FROLICKING AS WELL. YOU CAN READ MY " },
+  { text: "AND WATCH A LOT OF " },
+  { text: "movies", href: "/img/" },
+  { text: ". YOU CAN READ MY " },
   { text: "thoughts", href: "/txt/" },
-  { text: " ON THE STUFF MENTIONED ABOVE." },
+  { text: " ON THOSE TOPICS. IF YOU WANT. IT'S NOT A BIG DEAL" },
+  { text: ". I DON'T REALLY CARE. SERIOUSLY. I DON'T KNOW WHY YOU DON'T BELIEVE ME." },
 ];
 
 const completeText = segments.map(({ text }) => text).join("");
@@ -63,7 +64,7 @@ export default function Typewriter() {
 
           return (
             <Link className={[style.link, "animate-glow"].join(" ")} href={segment.href} key={segment.href}>
-              {visibleText}
+              <span>{visibleText}</span>
             </Link>
           );
         })}

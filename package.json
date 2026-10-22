@@ -23,6 +23,7 @@
     "drizzle-orm": "0.45.4",
     "gray-matter": "^4.0.3",
     "gsap": "^3.12.2",
+    "jimp": "0.22.10",
     "next": "16.3.8",
     "patch-package": "^8.0.0",
     "react": "19.3.0",

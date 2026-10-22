@@ -55,23 +55,13 @@ export default function Project() {
 					{/* max col: 41, max row: 39 */}
 					<a href="/sound" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/ascii.png')] col-[14_/_span_10] row-[15_/_span_12]"
 					data-title="ascii music player" 
-					data-desc="built in react using react-youtube package for audio, spotify api for images, asciify-image and ansi-to-html to handle the ascii, and splitting to support transitions. lessons learned: frakensteining packages together sucks." >
+					data-desc="built in react using react-youtube for audio and thumbnails, asciify-image and ansi-to-html to handle the ascii, and splitting to support transitions. lessons learned: frakensteining packages together sucks." >
 						<span className="sr-only">ASCII music player</span>
-					</a>
-					<a href="https://github.com/hlxmh/orange-site" target="_blank" rel="noopener noreferrer" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/orange.png')] col-[1_/_span_10] row-[1_/_span_12]"
-					data-title="orange co. site" 
-					data-desc="raw html + css, js for flavour. first 'project'. abandoned bc of unclear requests." >
-						<span className="sr-only">Orange Co. site (opens in a new tab)</span>
 					</a>
 					<a href="https://github.com/hlxmh/image-pdf-test" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/pdf-test.png')] col-[29_/_span_10] row-[1_/_span_12]"
 					data-title="client image, server pdf" 
-					data-desc="server side printing test, uses ngx-capture for screenshots, pdfkit to handle pdfs, and express for the server." >
+					data-desc="server side printing POC, uses ngx-capture for screenshots, pdfkit to handle pdfs, and express for the server." >
 						<span className="sr-only">Client image, server PDF</span>
-					</a>
-					<a href="https://github.com/hlxmh/mainnet-test" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/mainnet-test.png')] col-[30_/_span_10] row-[30_/_span_12]"
-					data-title="mainnet api test" 
-					data-desc="pure html, create wallets and transfer bch test coins using mainnet api. lessons learned: outdated documentation is death.">
-						<span className="sr-only">Mainnet API test</span>
 					</a>
 					<a href="/project/os161" className="grid-item bg-cover bg-center rounded-[10px] bg-[url('/os161.png')] col-[25_/_span_10] row-[17_/_span_12]"
 					data-title="os161" 
