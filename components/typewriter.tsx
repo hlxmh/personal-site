@@ -74,6 +74,8 @@ export default function Typewriter() {
                 className={[style.githubLink, "animate-glow"].join(" ")}
                 href={segment.href}
                 key={`${segment.icon}-${segment.href}`}
+                rel="noopener noreferrer"
+                target="_blank"
               >
                 <svg
                   aria-hidden="true"
